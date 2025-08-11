@@ -6,8 +6,12 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as Data
 import os
-from DataPreprocessing import DefactcodeDataset,count_max_seq_len
-from LocalTokenizer import loadtokenizer, word2index,vocabularygenerate
+try:
+    from DataPreprocessing import DefactcodeDataset,count_max_seq_len
+    from LocalTokenizer import loadtokenizer, word2index,vocabularygenerate
+except:
+    from TransformerModel.DataPreprocessing import DefactcodeDataset, count_max_seq_len
+    from TransformerModel.LocalTokenizer import loadtokenizer, word2index, vocabularygenerate
 
 """
 # @Time    : 2025/07/17
@@ -424,10 +428,12 @@ def test(model_path):
 
 
 
-def defactcode_detect(model_path,defactcode_setction):
+def defactcode_detect(model_path,defactcode_setction,verbose):
     """
     对传入的defactcode_setction进行检测，输出该缺陷代码的漏洞类型和概率
-    model：
+    model_path：深度学习模型文件
+    defactcode_setction：待检测的代码块
+    verbose：是否输出检测过程中的详细信息
     """
     model=Transformer().to("cuda") if CUDA_FLAGE else  Transformer()
     if CUDA_FLAGE:
@@ -442,9 +448,9 @@ def defactcode_detect(model_path,defactcode_setction):
     predict = predict.data.max(1,keepdim=True)[1]
     # print("kkkkk",predict.squeeze().shape,predict.squeeze().shape == (2,))
     if predict.squeeze().shape == (2,):
-        print("dassf",[list(tokenizer_dict)[n.item()] for n in predict.squeeze()])
         vultype_results = " ".join([list(tokenizer_dict)[n.item()] for n in predict.squeeze()][:1])
-        print(defactcode_setction,"预测的结果为：",vultype_results)
+        if verbose:
+            print(defactcode_setction,"预测的结果为：",vultype_results)
         return defactcode_setction, vultype_results
 
 

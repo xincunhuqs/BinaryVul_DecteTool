@@ -5,7 +5,10 @@ from fontTools.misc.psOperators import ps_integer
 from tqdm import tqdm
 import torch
 import random
-from  LocalTokenizer import word2index,loadtokenizer
+try:
+    from  LocalTokenizer import word2index,loadtokenizer
+except:
+    from TransformerModel.LocalTokenizer import word2index, loadtokenizer
 
 """
 # @Time    : 2025/07/17
