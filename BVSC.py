@@ -38,7 +38,6 @@ def disassembly_exe(executable_file_path,save_folder=None):
         HexCode = fexefile.read(VirtualSize)  # 可执行文件中的text节内容全部进行读取
 
     filename = os.path.basename(executable_file_path).split(".")[0]
-    # print(executable_file_path,type(executable_file_path))
     disassembly_contents = ""
     md = Cs(CS_ARCH_X86, CS_MODE_32)  # 初始化Capstone引擎，指定x86架构和32位模式
     for item in md.disasm(HexCode, StartVA):  # 反汇编节中的代码
@@ -83,32 +82,27 @@ def get_slicing(execute_file,bisc_size):
             slicingf.write("\n")
     with open(slicing_filename, 'r', encoding="utf-8") as slicingf1:
         slicing_content = slicingf1.read().split("\n")
-    # print("切片文件的内容为:",slicing_content)
     return slicing_content
 
 
 
-def defectcode_withdrow(exeute_file):
+def defectcode_withdrow(exeute_file,verbose):
     """
     实现对缺陷代码进行提取
     execute_file: 可执行文件路径
+    verbose: 是否展示预测相关参数
     """
     bisc_size = SLICING_BOCK_SIZE
     slicing_content = get_slicing(exeute_file, bisc_size)
-    # for slicing_bolck in slicing_content:
-    #     print(slicing_bolck)
     defectcode_result_dict = {}
     for source_line in tqdm(slicing_content,desc="请稍作等待，正在提取缺陷代码..."):
         if not  source_line.startswith("==="):
-            # print(source_line)
             #潜在bug,临时处理
             try:
-                result = defactcode_detect(r"./TransformerModel/local_model/transformer.pth", source_line)
+                result = defactcode_detect(r"./TransformerModel/local_model/transformer.pth", source_line,verbose)
                 if result is None:
-                    print("defactcode_detect 返回 None，跳过")
                     continue
                 if not isinstance(result, (tuple, list)) or len(result) != 2:
-                    print(f"返回值格式错误: {result}")
                     continue
                 defecode, vultype = result
             except Exception as e:
@@ -144,53 +138,46 @@ def analyze_defective_code(vultype,defective_code):
         print(f"deepseek 解析失败！{error}")
 
 
-def detect_tool(exefile,rsd_flage=False,analyze_flage=False):
+def detect_tool(exefile,verbose,rsd_flage=False,analyze_flage=False):
     """
     根据对传入的可执行文件进行解析，检测潜在缺陷
     exefile:待检测的二进制文件
     savelog_file:记录检测过程中的安全的反汇编缺陷代码存储在savelog_file文件中
     rsd_flage:是否保存安全反汇编代码的标志
     analyze_flage:是否调用deepseek api对分析结果进行降噪
+    verbose:展示检测过程中的详细信息
     """
-    defectcode_result_dict = defectcode_withdrow(exefile)
-    print(defectcode_result_dict)
+    print(f"\n\033[32m------------------当前待检测的二进制文件----------------\033[0m")
+    print(f"\033[32m{exefile}\033[0m")
+    print(f"\033[32m-------------------------------------------------------\033[0m\n")
+    defectcode_result_dict = defectcode_withdrow(exefile,verbose)
     result_dic={}
     if not os.path.exists("./DefectDiscoveryTrainDate"):
         os.mkdir("./DefectDiscoveryTrainDate")
-    local_time=time.strftime("%Y-%m-%d_%H-%M-%S",time.localtime())
+    local_time=time.strftime("%Y-%m-%d_%H:%M:%S",time.localtime())
     savelog_file=rf"./DefectDiscoveryTrainDate/defectdate_discovery_{local_time}.txt"
 
-    with open("./singchecked_result.txt",'w',encoding="utf-8") as fresult:
-        defectcode_index=0
-        print("asdf",analyze_flage,type(analyze_flage))
-        # print("HUQINSONG",analyze_flage==False)
+    with open("./singchecked_result.txt",'a',encoding="utf-8") as fresult:
+        defectcode_index=1
         for defect_code,vultype in tqdm(defectcode_result_dict.items(),desc="正在核验分析结果,请稍作等待..."):
-            # print("进入for循环")
             if analyze_flage:
-                # print("huqinsong")
                 analyze_result = analyze_defective_code(vultype,defect_code)
-                # print(analyze_result)
                 if analyze_result:
                     if "准确且可利用" in analyze_result:
-                        print("beijing",analyze_result,vultype)
                         analyze_result=analyze_result.replace('\\n','')
                         result_dic[defect_code]=vultype + f"--{analyze_result}"
-                        print(analyze_result)
                         defect_code=';\n'.join(defect_code.split(';'))
                         fresult.write(f"\n--------------------------------------缺陷代码块索引：{defectcode_index}-------------------------------------------------------\n")
                         fresult.write(f"检测时间：{local_time} \n检测文件:{exefile}\n检测结果:{vultype}\n可疑缺陷汇编代码块:{defect_code}\n：\n分析结果：{analyze_result}\n")
                         fresult.write(f"--------------------------------------------------------------\n")
                         defectcode_index+=1
             elif analyze_flage == False:
-                    # print("Huqinsong",analyze_flage == False)
                     defect_code=';\n'.join(defect_code.split(';'))
-                    print("检测代码",defect_code)
                     fresult.write(f"\n--------------------------------------缺陷代码块索引：{defectcode_index}-------------------------------------------------------\n")
                     fresult.write(f"检测时间：{local_time} \n检测文件:{exefile}\n检测结果:{vultype}\n可疑缺陷汇编代码块:\n{defect_code}：\n")
                     fresult.write(f"--------------------------------------------------------------\n")
                     defectcode_index+=1
             else:
-                print("asdfasdfas")
                 if rsd_flage:
                     with open(savelog_file,'w+',encoding="utf-8") as fdiscover:
                         discover_content=fdiscover.read()
@@ -202,46 +189,61 @@ def detect_tool(exefile,rsd_flage=False,analyze_flage=False):
     print(f"\033[31m 检测结果见：single_deteresult.txt \033[0m")
 
 
-def batch_detect(folder_path):
+def batch_detect(folder_path,verbose):
     """
     接收可执行文件所在的文件夹，批量化检测二进制文件
-    """
+    # """
     exefilepath_list=os.listdir(folder_path)
+    print(f"\n********待检测的二进制文件列表信息如下:************\n",)
+    for exefile in exefilepath_list:
+        if ".exe" in exefile:
+            print(exefile)
+    print("\n*************************************************\n",)
+
     for exefilename in exefilepath_list:
         if ".exe" in exefilename:
             exefile_path=os.path.join(folder_path,exefilename)
-            print("huqinsong",exefile_path)
-            detect_tool(exefile_path)
+            detect_tool(exefile_path,verbose)
+
 
 
 @click.command()
-@click.option("-efp","--exefile_path",required=True,help="Input the path of the binary file for detection",show_default=True)
+@click.option("-efp","--exefile_path",help="Input the path of the binary file for detection",show_default=True)
 @click.option("-efdp","--exefile_folder_path",help="Input the folder of the binary file for detection",show_default=True)
 @click.option("-nrsc","--normal_scan",default=True,help="Normal scan model",show_default=True)
 @click.option("-acsc","--accurate_scan",default=False,help="Combined with deepseek to do preliminary analysis" \
 " to reduce false positives",show_default=True)
+@click.option("-v","--verbose",default=False,help="Display detailed diagnostics during vulnerability assessment",show_default=True)
 # @click.option("-rsd","--recordsecure_disassembly",default=False,type=bool,help="Record secure defect assembly code snippets during detection",show_default=True)
 # @click.option("-vv","--")
 
-def exefile_check(exefile_path,exefile_folder_path,normal_scan,accurate_scan):
+def exefile_check(exefile_path,exefile_folder_path,normal_scan,accurate_scan,verbose):
     """
     对可疑二进制文件进行检测
     """
     if exefile_path:
-        print(exefile_path)
         if accurate_scan == "True":
-            print(f"调用大模型对预测结果进行降噪")
-            detect_tool(exefile_path,rsd_flage=True,analyze_flage=True)
+            print(f"\033[31m调用大模型对预测结果进行降噪\033[0m")
+            detect_tool(exefile_path,verbose,rsd_flage=True,analyze_flage=True)
         elif normal_scan:
-            print(f"普通扫描二进制漏洞检测模式")
-            detect_tool(exefile_path,rsd_flage=False,analyze_flage=False)
+            print(f"\033[31m普通扫描二进制漏洞检测模式\033[0m")
+            detect_tool(exefile_path,verbose,rsd_flage=False,analyze_flage=False)
+    if exefile_folder_path:
+        print(f"\033[32m当前检测的文件夹为:{exefile_folder_path}\033[0m")
+        if accurate_scan == "True":
+            print(f"\033[31m调用大模型对预测结果进行降噪\033[0m")
+            batch_detect(exefile_folder_path,verbose)
+        elif normal_scan:
+            print(f"\033[31m普通扫描二进制漏洞检测模式\033[0m")
+            batch_detect(exefile_folder_path,verbose)
 
 
-@click.command()     
-@click.option("-rsd","--recordsecure_disassembly",default=False,type=bool,help="Record secure defect assembly code snippets during detection",show_default=True)
-@click.option("-rtm","--retrain_model",help="The code slice optimization model recorded during the detection process")
-def retrain_model():
-    pass
+
+# @click.command()
+# @click.option("-rsd","--recordsecure_disassembly",default=False,type=bool,help="Record secure defect assembly code snippets during detection",show_default=True)
+# @click.option("-rtm","--retrain_model",help="The code slice optimization model recorded during the detection process")
+# def retrain_model():
+#     pass
 
 if __name__=="__main__":
         exefile_check()
