@@ -435,7 +435,6 @@ def defactcode_detect(model_path,defactcode_setction,verbose):
     defactcode_setction：待检测的代码块
     verbose：是否输出检测过程中的详细信息
     """
-    print('sf')
     model=Transformer().to("cuda") if CUDA_FLAGE else  Transformer()
     if CUDA_FLAGE:
         model.load_state_dict(torch.load(model_path,weights_only=False))
