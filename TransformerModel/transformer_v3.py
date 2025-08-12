@@ -442,13 +442,11 @@ def defactcode_detect(model_path,defactcode_setction,verbose):
     else:
         model.load_state_dict(torch.load(model_path,map_location=torch.device('cpu')))
     model.eval()
-    print("jinru")
     defactcodeindex_section=torch.LongTensor(word2index(defactcode_setction,tokenizer_dict,max_seq_length)).to("cuda") if CUDA_FLAGE else \
                 torch.LongTensor(word2index(defactcode_setction,tokenizer_dict,max_seq_length))
     greedy_dec_input=greedy_decoder(model,defactcodeindex_section.view(1,-1),start_symbol=torch.Tensor([[tokenizer_dict["S"]]]).to(torch.int64))
     predict, _, _, _=model(defactcodeindex_section.view(1,-1), greedy_dec_input)
     predict = predict.data.max(1,keepdim=True)[1]
-    print("kkkkk",predict.squeeze().shape,predict.squeeze().shape == (2,))
     if predict.squeeze().shape == (2,):
         vultype_results = " ".join([list(tokenizer_dict)[n.item()] for n in predict.squeeze()][:1])
         if verbose:
