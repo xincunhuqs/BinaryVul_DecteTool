@@ -189,7 +189,7 @@ def detect_tool(exefile,verbose,rsd_flage=False,analyze_flage=False,save_folder=
             elif analyze_flage == False:
                     defect_code=';\n'.join(defect_code.split(';'))
                     fresult.write(f"\n--------------------------------------缺陷代码块索引：{defectcode_index}-------------------------------------------------------\n")
-                    fresult.write(f"检测时间：{local_time} \n检测文件:{exefile}\n检测结果:{vultype}\n可疑缺陷汇编代码块:\n{defect_code}：\n")
+                    fresult.write(f"检测时间：{local_time} \n检测文件:{exefile}\n检测结果:{vultype}\n可疑缺陷汇编代码块:\n{defect_code}\n")
                     fresult.write(f"--------------------------------------------------------------\n")
                     defectcode_index+=1
             else:
@@ -264,3 +264,4 @@ def exefile_check(exefile_path,exefile_folder_path,normal_scan,accurate_scan,ver
 
 if __name__=="__main__":
         exefile_check()
+
