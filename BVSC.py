@@ -1,4 +1,9 @@
-import os.path
+
+from TransformerModel.preinstall_model import necemodel_preinstall
+import os.path,time
+if not os.path.exists(f"./TransformerModel/check_log.txt"):
+        necemodel_preinstall()
+
 from openai import OpenAI
 from tqdm import tqdm
 from capstone import *
@@ -204,6 +209,7 @@ def batch_detect(folder_path,verbose):
         if ".exe" in exefilename:
             exefile_path=os.path.join(folder_path,exefilename)
             detect_tool(exefile_path,verbose)
+
 
 
 
