@@ -5,10 +5,14 @@ import sys,os,time
 def necemodel_preinstall():
     """
     运行该工具时自动检查并安装所需的模块
+
+
     """
+
+
     write_time=time.strftime("%Y-%m-%d_%H:%M:S",time.localtime())
     necessary_model_dict={"torch":"2.5.1","openai":"1.58.1","capstone":"5.0.3","pefile":"2024.8.26",\
-                         "click":"8.1.7" }
+                         "click":"8.1.7","tqdm":"4.67.1" }
     print(f"\033[31m请稍作等待，正在检查前置包...\033[0m")
     preinstall_error=""
     checklog_path=f"./TransformerModel/check_log.txt"

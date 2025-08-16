@@ -143,7 +143,7 @@ def analyze_defective_code(vultype,defective_code):
         print(f"deepseek 解析失败！{error}")
 
 
-def detect_tool(exefile,verbose,rsd_flage=False,analyze_flage=False):
+def detect_tool(exefile,verbose,rsd_flage=False,analyze_flage=False,save_folder=None):
     """
     根据对传入的可执行文件进行解析，检测潜在缺陷
     exefile:待检测的二进制文件
@@ -154,15 +154,25 @@ def detect_tool(exefile,verbose,rsd_flage=False,analyze_flage=False):
     """
     print(f"\n\033[32m------------------当前待检测的二进制文件----------------\033[0m")
     print(f"\033[32m{exefile}\033[0m")
-    print(f"\033[32m-------------------------------------------------------\033[0m\n")
+    print(f"\033[32m-------------------------------------------------------\033[0m")
+    local_time=time.strftime("%Y-%m-%d_%H.%M.%S",time.localtime())
+    print("huqinsong",save_folder)
+    if save_folder:
+        scanresult_folder=f"./ScanResult_Folder/{save_folder}"
+    else:
+        scanresult_folder = "./ScanResult_Folder"
+    if not os.path.exists(scanresult_folder):
+        os.mkdir(scanresult_folder)
+    scanresult_path = f"{scanresult_folder}/{os.path.basename(exefile).split('.')[0]}_{local_time}.txt"
+
+    print(f"\033[31m检测结果见:{scanresult_path}\033[0m")
     defectcode_result_dict = defectcode_withdrow(exefile,verbose)
     result_dic={}
     if not os.path.exists("./DefectDiscoveryTrainDate"):
         os.mkdir("./DefectDiscoveryTrainDate")
-    local_time=time.strftime("%Y-%m-%d_%H:%M:%S",time.localtime())
     savelog_file=rf"./DefectDiscoveryTrainDate/defectdate_discovery_{local_time}.txt"
 
-    with open("./singchecked_result.txt",'a',encoding="utf-8") as fresult:
+    with open(scanresult_path,'w',encoding="utf-8") as fresult:
         defectcode_index=1
         for defect_code,vultype in tqdm(defectcode_result_dict.items(),desc="正在核验分析结果,请稍作等待..."):
             if analyze_flage:
@@ -197,7 +207,8 @@ def detect_tool(exefile,verbose,rsd_flage=False,analyze_flage=False):
 def batch_detect(folder_path,verbose):
     """
     接收可执行文件所在的文件夹，批量化检测二进制文件
-    # """
+     """
+    savefolder_name=folder_path.split("\\")[-1]
     exefilepath_list=os.listdir(folder_path)
     print(f"\n********待检测的二进制文件列表信息如下:************\n",)
     for exefile in exefilepath_list:
@@ -208,7 +219,7 @@ def batch_detect(folder_path,verbose):
     for exefilename in exefilepath_list:
         if ".exe" in exefilename:
             exefile_path=os.path.join(folder_path,exefilename)
-            detect_tool(exefile_path,verbose)
+            detect_tool(exefile_path,verbose,save_folder=savefolder_name)
 
 
 
