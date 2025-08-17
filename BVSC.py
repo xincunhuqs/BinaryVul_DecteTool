@@ -10,6 +10,7 @@ from capstone import *
 import pefile
 import time
 import click
+import shutil
 from TransformerModel.transformer_v3 import defactcode_detect
 
 """
@@ -31,12 +32,12 @@ def disassembly_exe(executable_file_path,save_folder=None):
     pe = pefile.PE(executable_file_path)
     for item in pe.sections:
         #当从外部数据源读取数据时，数据通常以字节流的形式表示。
-        if  ".text" in str(item.Name.decode('UTF-8')) :  #decode函数将字节流解码为字符串
-            VirtualAddress = item.VirtualAddress  # 获取text节的相对虚拟地址
-            VirtualSize = item.SizeOfRawData     # 获取text节的虚拟大小
-            ActualOffset = item.PointerToRawData  #获取text节在文件中的偏移量
+        if  ".text" in str(item.Name.decode('UTF-8')) : 
+            VirtualAddress = item.VirtualAddress   
+            VirtualSize = item.SizeOfRawData     
+            ActualOffset = item.PointerToRawData  
     ImageBase =pe.OPTIONAL_HEADER.ImageBase 
-    StartVA =ImageBase +VirtualAddress  # 计算出.text节的虚拟地址
+    StartVA =ImageBase +VirtualAddress 
 
     with open(executable_file_path, "rb") as fexefile:
         fexefile.seek(ActualOffset,1)   #将文件指针调整到可执行文件的text节位置处，然后从该位置开始读取数据
@@ -71,7 +72,7 @@ def get_slicing(execute_file,bisc_size):
     base_dir = "./temp_folder"
     if not os.path.exists(base_dir):
         os.mkdir(base_dir)
-    disassembly_linecontent = disassembly_exe(execute_file,)
+    disassembly_linecontent = disassembly_exe(execute_file)
     disassembly_file = os.path.join(base_dir, "temp_disassembly.txt")
     with open(disassembly_file,"w",encoding="utf-8") as fdisassem:
         fdisassem.write(disassembly_linecontent)
@@ -87,6 +88,8 @@ def get_slicing(execute_file,bisc_size):
             slicingf.write("\n")
     with open(slicing_filename, 'r', encoding="utf-8") as slicingf1:
         slicing_content = slicingf1.read().split("\n")
+    if os.path.exists(base_dir):
+        shutil.rmtree(base_dir)
     return slicing_content
 
 
@@ -156,7 +159,6 @@ def detect_tool(exefile,verbose,rsd_flage=False,analyze_flage=False,save_folder=
     print(f"\033[32m{exefile}\033[0m")
     print(f"\033[32m-------------------------------------------------------\033[0m")
     local_time=time.strftime("%Y-%m-%d_%H.%M.%S",time.localtime())
-    print("huqinsong",save_folder)
     if save_folder:
         scanresult_folder=f"./ScanResult_Folder/{save_folder}"
     else:
@@ -168,10 +170,6 @@ def detect_tool(exefile,verbose,rsd_flage=False,analyze_flage=False,save_folder=
     print(f"\033[31m检测结果见:{scanresult_path}\033[0m")
     defectcode_result_dict = defectcode_withdrow(exefile,verbose)
     result_dic={}
-    if not os.path.exists("./DefectDiscoveryTrainDate"):
-        os.mkdir("./DefectDiscoveryTrainDate")
-    savelog_file=rf"./DefectDiscoveryTrainDate/defectdate_discovery_{local_time}.txt"
-
     with open(scanresult_path,'w',encoding="utf-8") as fresult:
         defectcode_index=1
         for defect_code,vultype in tqdm(defectcode_result_dict.items(),desc="正在核验分析结果,请稍作等待..."):
@@ -194,14 +192,15 @@ def detect_tool(exefile,verbose,rsd_flage=False,analyze_flage=False,save_folder=
                     defectcode_index+=1
             else:
                 if rsd_flage:
+                    if not os.path.exists("./DefectDiscoveryTrainDate"):
+                         os.mkdir("./DefectDiscoveryTrainDate")
+                         savelog_file=rf"./DefectDiscoveryTrainDate/defectdate_discovery_{local_time}.txt"
                     with open(savelog_file,'w+',encoding="utf-8") as fdiscover:
                         discover_content=fdiscover.read()
                         if defect_code not in discover_content:
                             fdiscover.write(defect_code+"  security_code"+"\n")
-    # if os.path.exists(r"./tokenize_dict.txt"):
-    #     os.remove(r"./tokenize_dict.txt")
-    print(f"\033[32m 检测结束一共检测到:{defectcode_index}个可疑缺陷汇编代码块\033[0m")
-    print(f"\033[31m 检测结果见：single_deteresult.txt \033[0m")
+
+    print(f"\033[32m检测结束,一共检测到:{defectcode_index}个可疑缺陷汇编代码块\033[0m")
 
 
 def batch_detect(folder_path,verbose):
@@ -231,8 +230,6 @@ def batch_detect(folder_path,verbose):
 @click.option("-acsc","--accurate_scan",default=False,help="Combined with deepseek to do preliminary analysis" \
 " to reduce false positives",show_default=True)
 @click.option("-v","--verbose",default=False,help="Display detailed diagnostics during vulnerability assessment",show_default=True)
-# @click.option("-rsd","--recordsecure_disassembly",default=False,type=bool,help="Record secure defect assembly code snippets during detection",show_default=True)
-# @click.option("-vv","--")
 
 def exefile_check(exefile_path,exefile_folder_path,normal_scan,accurate_scan,verbose):
     """
@@ -255,12 +252,6 @@ def exefile_check(exefile_path,exefile_folder_path,normal_scan,accurate_scan,ver
             batch_detect(exefile_folder_path,verbose)
 
 
-
-# @click.command()
-# @click.option("-rsd","--recordsecure_disassembly",default=False,type=bool,help="Record secure defect assembly code snippets during detection",show_default=True)
-# @click.option("-rtm","--retrain_model",help="The code slice optimization model recorded during the detection process")
-# def retrain_model():
-#     pass
 
 if __name__=="__main__":
         exefile_check()

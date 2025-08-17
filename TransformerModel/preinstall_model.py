@@ -2,14 +2,20 @@ import importlib.util
 import subprocess
 import sys,os,time
 
+
+"""
+# @Time    : 2025/08/18
+# @Author  : huqinsong
+# @Version: 预安装python模块
+# @Desc: 主要实现：
+        在执行二进制文件扫描之前先检查必备的python模块是否安装
+"""
+
 def necemodel_preinstall():
     """
     运行该工具时自动检查并安装所需的模块
 
-
     """
-
-
     write_time=time.strftime("%Y-%m-%d_%H:%M:S",time.localtime())
     necessary_model_dict={"torch":"2.5.1","openai":"1.58.1","capstone":"5.0.3","pefile":"2024.8.26",\
                          "click":"8.1.7","tqdm":"4.67.1" }
@@ -40,6 +46,7 @@ def necemodel_preinstall():
         os.remove(checklog_path)
         return 
     print(f"\033[31m当前环境检测结束....\033[0m")
+
 
 if __name__=="__main__":
     necemodel_preinstall()

@@ -20,7 +20,7 @@ except:
 # @Desc: 主要实现：
         利用Transformer深度学习模型，完成漏洞特征提取
 
-参考：
+参考：https://wmathor.com/index.php/archives/1438/
 """
 
 CUDA_FLAGE = torch.cuda.is_available()
@@ -452,66 +452,6 @@ def defactcode_detect(model_path,defactcode_setction,verbose):
             print(defactcode_setction,"预测的结果为：",vultype_results)
         return defactcode_setction, vultype_results
 
-
-def test_train():
-    model.load_state_dict(torch.load(r"./local_model/transformer.pth"))
-    model.train()
-    tokenizerdict_path = r"./tokenize_dict.txt"
-    loader = Data.DataLoader(DefactcodeDataset(tokenizerdict_path,\
-                r"./data/train.txt", max_seq_length), 30, True)
-    accuracy_list=[]
-    loss_list=[]
-    batch_index_list=[]
-    for epoch in range(6): 
-        epoch_list=[]
-        print(f"训练轮数：{epoch+1}")
-        correct_time = total_time = 0
-        for batch_index,(enc_inputs, dec_inputs, dec_outputs) in enumerate(loader):
-            '''
-            enc_inputs: [batch_size, src_len]
-            dec_inputs: [batch_size, tgt_len]
-            dec_outputs: [batch_size, tgt_len]
-            '''
-            enc_inputs, dec_inputs, dec_outputs = enc_inputs.cuda(), dec_inputs.cuda(), dec_outputs.cuda()
-            # outputs: [batch_size * tgt_len, tgt_vocab_size]
-            # print(f"encoder的输入为：",enc_inputs)
-            outputs, enc_self_attns, dec_self_attns, dec_enc_attns = model(enc_inputs, dec_inputs)
-            print(f"模型预测的结果为： {outputs}")
-            print("原始输出的结果形状为：",outputs.shape)
-            number_nonzreo = 1 #torch.nonzero(dec_outputs).size(0)
-            preds=outputs.argmax(dim=-1)
-            print("预测结果的维度为：",preds.shape)
-            print(f"预测结果为：{preds}")
-            # print("decoder的输出结果为：",dec_outputs.view(-1)[number_nonzreo])
-            # print("decoder的输出维度为：",dec_outputs.view(-1).shape)
-            # print("非0元素的个数：",number_nonzreo,type(number_nonzreo))
-            correct_time += (preds[:number_nonzreo] == dec_outputs.view(-1)[:number_nonzreo]).sum().item()  # 统计预测正确的token数
-            # print(f"模型预测的结果：{preds[:number_nonzreo]}，数据集中真实结果：{dec_outputs.view(-1)[:number_nonzreo].sum().item()}")
-            total_time += 1
-            print("预测结果的完整输出为：",preds)
-            print("预测值的结果为：", preds[:number_nonzreo])
-            # print("encoder的输入内容为：",enc_inputs)
-            # print("decoder的输入结果为：",dec_inputs)
-            print("decoder的输出结果为：",dec_outputs)
-            # print("预测的结果切片：",preds[:number_nonzreo])
-            # print("decoder的输出结果切片",dec_outputs.view(-1)[:number_nonzreo])
-            print(f"正确数：{correct_time}，总数：{total_time}")
-            print("\n\n")
-            loss = criterion(outputs, dec_outputs.view(-1))
-            optimizer.zero_grad()  #梯度清零
-            loss.backward() #反向传播
-            optimizer.step()  #参数更新
-            if batch_index%1 ==0:
-                print('Epoch:', '%d' % (epoch + 1), "batch index:",f"{batch_index+1}/{len(loader)}", 'loss =', '{:.6f}'.format(loss),"acc:",(correct_time/total_time)*100,"%")
-                accuracy_list.append(correct_time/total_time)
-                loss_list.append(loss.item())
-                batch_index_list.append(batch_index)
-    with open(r"DetectMModel\TransformerModel\temp_test\accurity_file", "w", encoding="utf-8") as f:
-        f.write(str(accuracy_list)+"\n"+str(batch_index_list))
-    if not os.path.exists(r"DetectMModel\TransformerModel\local_model"):
-        os.mkdir(r"DetectMModel\TransformerModel\local_model")
-    torch.save(model.state_dict(), r"DetectMModel\TransformerModel\local_model\transformer1.pth")
-    print("成功保存了训练的深度学习模型")
 
 
 if __name__ == '__main__':

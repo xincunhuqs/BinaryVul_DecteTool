@@ -102,22 +102,9 @@ class DefactcodeDataset(Data.Dataset):
 
 
 if __name__ == "__main__":
-
-    #生成训练数据
-    #generate_model_data(r"./DefectcodeSet/defectcode_set.txt")
-
-    #划分数据集
-    #defacetcode_set=r"./TransformerDefectcodeSet/trainsformer_datast.txt"
-    #split_data_and_getvocbsize(defacetcode_set)
-    # 计算整个数据集中序列的最大长度，并且创建分词对象
-    # data_set=r".\trainsformer_datast.txt"
     data_set="./data/train.txt"
     tokenizer_dict=loadtokenizer(r"tokenize_dict.txt")
     max_seq_len=count_max_seq_len(data_set) # CWE416中对应的序列最大长度为774
-    #print("当前最大序列长度为:",max_seq_len)
-    # tokenizer_dict_path="./tokenize_dict1.txt"
-    # dataset = DefactcodeDataset(tokenizer_dict_path, "./data/train.txt", max_seq_len)
-    # print("tiaoshi",dataset[0])
 
 
 
