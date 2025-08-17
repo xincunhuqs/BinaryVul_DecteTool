@@ -5,7 +5,7 @@
 <font color=red>注意：目前该工具仅支持对PE格式的二进制文件进行缺陷检测。</font>
 
 工具获取：
- 由于改项目中存在一个大于180MB的文件，因此下载该项目时，只能通过git clone方式下载，执行如下命令：
+ 由于该项目中存在一个大于180MB的文件，因此下载该项目时，只能通过git clone方式下载，执行如下命令：
 ```
 git clone  git clone https://github.com/xincunhuqs/BinaryVul_DecteTool.git
 ```
