@@ -4,6 +4,14 @@
 
 <font color=red>注意：目前该工具仅支持对PE格式的二进制文件进行缺陷检测。</font>
 
+工具获取：
+ 由于改项目中存在一个大于180MB的文件，因此下载该项目时，只能通过git clone方式下载，执行如下命令：
+```
+git clone  git clone https://github.com/xincunhuqs/BinaryVul_DecteTool.git
+```
+<img width="1066" height="592" alt="image" src="https://github.com/user-attachments/assets/d4e02c71-cda7-49a7-9c6d-304c75c86166" />
+
+
 # 二、工具使用教程：
 
 进入Bvsc_tool目录，执行BVSC.py代码，命令如下:
