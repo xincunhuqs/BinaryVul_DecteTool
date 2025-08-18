@@ -9,11 +9,11 @@
 ```
 git clone https://github.com/xincunhuqs/BinaryVul_DecteTool.git
 ```
-windows环境中下git工具获取截图：
+**windows环境中下git工具获取截图：**
 
 <img width="1066" height="592" alt="image" src="https://github.com/user-attachments/assets/d4e02c71-cda7-49a7-9c6d-304c75c86166" />
 
-linux环境使用git命令获取截图：
+**linux环境使用git命令获取截图：**
 <img width="1757" height="245" alt="image" src="https://github.com/user-attachments/assets/9a5aba8f-b32d-42ab-b972-ac307055e4f7" />
 
 # 二、工具使用教程：
@@ -50,12 +50,14 @@ python BVSC.py -efp "check_binaryfile_path" [-v] [-acsc]
  ```
 
 
-​    <img width="1950" height="551" alt="image" src="https://github.com/user-attachments/assets/1e312206-ec64-4851-b366-2624e41ebff0" />
+​    <img width="1951" height="749" alt="image" src="https://github.com/user-attachments/assets/c6dc0e9c-3167-48c3-b621-2dc916894640" />
+
 
 
 
 **使用-acsc参数调用大模型进行解析结果降噪，使用-v参数展示扫描过程信息。**
-<img width="1934" height="574" alt="image" src="https://github.com/user-attachments/assets/e60a7411-bf28-4bbd-ba24-02623b1b8eea" />
+<img width="1953" height="884" alt="image" src="https://github.com/user-attachments/assets/ba473b7a-d2d3-49a7-90d0-5b1ffea01111" />
+
 
 
 ### 2、扫描二进制文件夹
