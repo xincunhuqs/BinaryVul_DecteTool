@@ -9,7 +9,7 @@
 ```
 git clone https://github.com/xincunhuqs/BinaryVul_DecteTool.git
 ```
-**windows环境中下安装lsf工具命令和git工具获取项目文件截图如下：**
+**windows环境中下安装lfs工具命令和git工具获取项目文件截图如下：**
 
 ```
 git lfs install
