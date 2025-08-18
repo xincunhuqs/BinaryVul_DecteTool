@@ -55,8 +55,8 @@ python BVSC.py -efp "check_binaryfile_path" [-v] [-acsc]
 
 
 
-**使用-acsc参数调用大模型进行解析结果降噪，使用-v参数展示扫描过程信息。**
-<img width="1953" height="884" alt="image" src="https://github.com/user-attachments/assets/ba473b7a-d2d3-49a7-90d0-5b1ffea01111" />
+**使用-acsc参数调用大模型进行解析结果降噪并且使用-v参数展示扫描过程信息。**
+<img width="1953" height="884" alt="image" src="https://github.com/user-attachments/assets/6b3a6fec-af44-4bf9-9747-c97392f2e9bd" />
 
 
 
