@@ -9,15 +9,15 @@
 ```
 git clone https://github.com/xincunhuqs/BinaryVul_DecteTool.git
 ```
-**windows环境中下git工具获取截图：**
-window环境下安装lsf工具命令如下：
+**windows环境中下安装lsf工具命令和git工具获取项目文件截图如下：**
+
 ```
 git lfs install
 ```
 <img width="1066" height="592" alt="image" src="https://github.com/user-attachments/assets/d4e02c71-cda7-49a7-9c6d-304c75c86166" />
 
-**linux环境使用git命令获取截图：**
-linux环境下载安装lfs工具命令如下：
+**linux环境安装lfs工具命令和使用git命令获取项目文件如下：**
+
 ```
 sudo yum install epel-release
 sudo yum install git-lfs
