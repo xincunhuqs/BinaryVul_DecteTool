@@ -17,7 +17,7 @@ def necemodel_preinstall():
 
     """
     write_time=time.strftime("%Y-%m-%d_%H:%M:S",time.localtime())
-    necessary_model_dict={"numpy":"2.2.0","torch":"2.5.1","openai":"1.58.1","capstone":"5.0.3","pefile":"2024.8.26",\
+    necessary_model_dict={"fonttools":"4.55.3","numpy":"2.2.0","torch":"2.5.1","openai":"1.58.1","capstone":"5.0.3","pefile":"2024.8.26",\
                          "click":"8.1.7","tqdm":"4.67.1" }
     print(f"\033[31m请稍作等待，正在检查前置包...\033[0m")
     preinstall_error=""
