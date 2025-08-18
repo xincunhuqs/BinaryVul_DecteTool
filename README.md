@@ -68,14 +68,16 @@ python BVSC.py -efp "check_binaryfile_path" [-v] [-acsc]
 python BVSC.py -efdp "check_binaryfile_folder" [-v] [-acsc]
 ```
 
-<img width="1936" height="434" alt="image" src="https://github.com/user-attachments/assets/8fdc0ca0-ca98-4cc4-9639-94da8aa145ed" />
+<img width="1575" height="742" alt="image" src="https://github.com/user-attachments/assets/583b4cd4-16c0-4efa-9c93-f59a768832bf" />
 
-<img width="1967" height="280" alt="image" src="https://github.com/user-attachments/assets/3eb052d8-8257-4f72-a81a-4d3f8fc7f8c2" />
+
+<img width="1993" height="347" alt="image" src="https://github.com/user-attachments/assets/cbcedbe1-19bb-402b-a2bc-11907397b5ba" />
 
 
 
 **使用-acsc参数调用大模型进行解析结果降噪，使用-v参数展示扫描过程信息。**
 
-<img width="1943" height="347" alt="image" src="https://github.com/user-attachments/assets/71c480a3-69ac-4e3a-93f0-060bfe27a239" />
+<img width="1822" height="805" alt="image" src="https://github.com/user-attachments/assets/5d7beeaa-89cd-4440-acbd-4a0e3aa2714d" />
 
-<img width="1964" height="476" alt="image" src="https://github.com/user-attachments/assets/a9c566e3-1b27-4c0d-9759-e59a2e3a2582" />
+<img width="1985" height="830" alt="image" src="https://github.com/user-attachments/assets/7a8d6af2-044f-4daf-9c94-27edf6aebb7c" />
+
