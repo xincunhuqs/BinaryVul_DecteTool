@@ -7,7 +7,7 @@
 工具获取：
  由于该项目中存在一个大于180MB的文件，因此下载该项目时，只能通过git clone方式下载，执行如下命令：
 ```
-git clone  git clone https://github.com/xincunhuqs/BinaryVul_DecteTool.git
+git clone https://github.com/xincunhuqs/BinaryVul_DecteTool.git
 ```
 windows环境中下git工具获取截图：
 
