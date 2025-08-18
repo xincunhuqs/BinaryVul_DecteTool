@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as Data
 import os
+import warnings
 try:
     from DataPreprocessing import DefactcodeDataset,count_max_seq_len
     from LocalTokenizer import loadtokenizer, word2index,vocabularygenerate
@@ -23,6 +24,7 @@ except:
 参考：https://wmathor.com/index.php/archives/1438/
 """
 
+warnings.filterwarnings("ignore", category=FutureWarning)
 CUDA_FLAGE = torch.cuda.is_available()
 # vocabularygenerate(r"TransformerModel\data\train.txt")
 tokenizer_dict = loadtokenizer(r"./tokenize_dict.txt")
