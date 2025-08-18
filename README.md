@@ -9,8 +9,11 @@
 ```
 git clone  git clone https://github.com/xincunhuqs/BinaryVul_DecteTool.git
 ```
+windows环境中下git工具获取截图：
+
 <img width="1066" height="592" alt="image" src="https://github.com/user-attachments/assets/d4e02c71-cda7-49a7-9c6d-304c75c86166" />
 
+linux环境使用git命令获取截图：
 <img width="1757" height="245" alt="image" src="https://github.com/user-attachments/assets/9a5aba8f-b32d-42ab-b972-ac307055e4f7" />
 
 # 二、工具使用教程：
