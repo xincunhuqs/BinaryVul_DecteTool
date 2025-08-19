@@ -331,62 +331,6 @@ optimizer = optim.SGD(model.parameters(), lr=0.008, momentum=0.75) #优先
 # optimizer=optim.Adagrad(model.parameters(), lr=0.008)
 # optimizer=optim.ASGD(model.parameters(), lr=0.002)
 
-def train():
-    model.train()
-    tokenizerdict_path = r"./tokenize_dict.txt"
-    loader = Data.DataLoader(DefactcodeDataset(tokenizerdict_path,\
-                r"data/train.txt", max_seq_length), 15, True)
-    accuracy_list=[]
-    loss_list=[]
-    batch_index_list=[]
-    for epoch in range(12):
-        epoch_list=[]
-        print(f"训练轮数：{epoch+1}")
-        correct_time = total_time = 0
-        for batch_index,(enc_inputs, dec_inputs, dec_outputs) in enumerate(loader):
-            '''
-            enc_inputs: [batch_size, src_len]
-            dec_inputs: [batch_size, tgt_len]
-            dec_outputs: [batch_size, tgt_len]
-            '''
-            if torch.cuda.is_available():
-                enc_inputs, dec_inputs, dec_outputs = enc_inputs.cuda(), dec_inputs.cuda(), dec_outputs.cuda()
-            else:
-                enc_inputs, dec_inputs, dec_outputs = enc_inputs, dec_inputs, dec_outputs
-            # outputs: [batch_size * tgt_len, tgt_vocab_size]
-            # print(f"encoder的输入为：",enc_inputs)
-            outputs, enc_self_attns, dec_self_attns, dec_enc_attns = model(enc_inputs, dec_inputs)
-            print(f"模型预测的结果为： {outputs},型号为：{outputs.shape}")
-            print("原始输出的结果形状为：",outputs.shape)
-            number_nonzreo = 1 #torch.nonzero(dec_outputs).size(0)
-            preds=outputs.argmax(dim=-1)
-            print("预测结果的维度为：",preds.shape)
-            print(f"预测结果为：{preds}")
-            correct_time += (preds[:number_nonzreo] == dec_outputs.view(-1)[:number_nonzreo]).sum().item()  # 统计预测正确的token数
-            # print(f"模型预测的结果：{preds[:number_nonzreo]}，数据集中真实结果：{dec_outputs.view(-1)[:number_nonzreo].sum().item()}")
-            total_time += 1
-            print("预测结果的完整输出为：",preds)
-            print("预测值的结果为：", preds[:number_nonzreo])
-            print("decoder的输出结果为：",dec_outputs)
-            print(f"正确数：{correct_time}，总数：{total_time}")
-            print("\n\n")
-            loss = criterion(outputs, dec_outputs.view(-1))
-            optimizer.zero_grad()  #梯度清零
-            loss.backward() #反向传播
-            optimizer.step()  #参数更新
-            if batch_index%1 ==0:
-                print('Epoch:', '%d' % (epoch + 1), "batch index:",f"{batch_index+1}/{len(loader)}", 'loss =', '{:.6f}'.format(loss),"acc:",(correct_time/total_time)*100,"%")
-                accuracy_list.append(correct_time/total_time)
-                loss_list.append(loss.item())
-                batch_index_list.append(batch_index)
-    if not os.path.exists(r"./local_model"):
-        os.mkdir(r"./local_model")
-    time_flage=time.strftime("%Y%m%d%H%M%S")
-    torch.save(model.state_dict(), rf"./local_model/transformer{time_flage}.pth")
-    print("成功保存了训练的深度学习模型")
-
-
-
 def greedy_decoder(model, enc_input, start_symbol):
     enc_outputs, enc_self_attns = model.encoder(enc_input)
     dec_input = torch.zeros(1, 0).type_as(enc_input.data)
@@ -410,25 +354,6 @@ def greedy_decoder(model, enc_input, start_symbol):
         if dec_input.size(1) > 3:  # 例如最大生成长度100
             finishes = True
     return dec_input
-
-
-def test(model_path):
-    # Test
-    tokenizerdict_path = r"tokenize_dict.txt"
-    loader = Data.DataLoader(DefactcodeDataset(tokenizerdict_path, "./data/test.txt", max_seq_length), 20, True)
-    model.load_state_dict(torch.load(model_path,weights_only=False))
-    model.eval()
-    enc_inputs, _, _ = next(iter(loader))
-    enc_inputs = enc_inputs.cuda()
-    # print(f"正在构造贪婪输入序列..")
-    for i in range(len(enc_inputs)):
-        greedy_dec_input = greedy_decoder(model, enc_inputs[i].view(1, -1), start_symbol=torch.Tensor([[tokenizer_dict["S"]]]).to(torch.int64))
-        predict, _, _, _ = model(enc_inputs[i].view(1, -1), greedy_dec_input)
-        predict = predict.data.max(1, keepdim=True)[1]
-        print(enc_inputs[i], '->', [list(tokenizer_dict)[n.item()-1] for n in predict.squeeze()])
-
-
-
 
 def defactcode_detect(model_path,defactcode_setction,verbose):
     """
