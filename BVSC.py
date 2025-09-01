@@ -101,29 +101,39 @@ def defectcode_withdrow(exeute_file,verbose):
     verbose: 是否展示预测相关参数
     """
     bisc_size = SLICING_BOCK_SIZE
-    slicing_content = get_slicing(exeute_file, bisc_size)
+    slicing_content = [slicing_code for slicing_code in get_slicing(exeute_file, bisc_size) if not slicing_code.startswith("====")]
     defectcode_result_dict = {}
     for source_line in tqdm(slicing_content,desc="请稍作等待，正在提取缺陷代码..."):
-        if not  source_line.startswith("==="):
             #潜在bug,临时处理
             try:
                 result = defactcode_detect(r"./TransformerModel/local_model/transformer.pth", source_line,verbose)
                 if result is None:
+                    print(f"{source_line}结果为空（{result}）")
                     continue
                 if not isinstance(result, (tuple, list)) or len(result) != 2:
+                    print(f"{result}出现异常")
                     continue
                 defecode, vultype = result
             except Exception as e:
                 print(f"意外异常: {e}")
                 continue
             if "CWE" in vultype and defecode and vultype:
-                defectcode_result_dict[defecode] = vultype
+                defectcode_result_dict[defecode] = vultype                
     return defectcode_result_dict
 
 
 def analyze_defective_code(vultype,defective_code):
     #对生成的汇编语句进行详细的解析
-    client = OpenAI(api_key="sk-e0be04fc2a574262a433f03282717cad", base_url="https://api.deepseek.com")
+    apikey_file="./TransformerModel/api_key.txt"
+    if not os.path.exists(apikey_file):
+        API_KEY=input("请输入deepseek的key(https://platform.deepseek.com/usage):")
+        if API_KEY:
+            with open(apikey_file,'w',encoding="utf-8") as fapi:
+                fapi.write(API_KEY)
+    else:
+        with open(apikey_file,'r',encoding="utf-8") as fkey:
+            API_KEY=fkey.readlines()[0]
+    client = OpenAI(api_key=API_KEY, base_url="https://api.deepseek.com")
     try:
         response = client.chat.completions.create(
             model="deepseek-chat",
@@ -144,6 +154,8 @@ def analyze_defective_code(vultype,defective_code):
         return analyze_result
     except Exception as error:
         print(f"deepseek 解析失败！{error}")
+        return 0
+
 
 
 def detect_tool(exefile,verbose,rsd_flage=False,analyze_flage=False,save_folder=None):
@@ -184,6 +196,9 @@ def detect_tool(exefile,verbose,rsd_flage=False,analyze_flage=False,save_folder=
                         fresult.write(f"检测时间：{local_time} \n检测文件:{exefile}\n检测结果:{vultype}\n可疑缺陷汇编代码块:{defect_code}\n：\n分析结果：{analyze_result}\n")
                         fresult.write(f"--------------------------------------------------------------\n")
                         defectcode_index+=1
+                else:
+                    print(f"\033[31m \n请检查./TransformerModel/api_key.txt文件中的api_key是否正确!!!\n \033[0m")
+                    return
             elif analyze_flage == False:
                     defect_code=';\n'.join(defect_code.split(';'))
                     fresult.write(f"\n--------------------------------------缺陷代码块索引：{defectcode_index}-------------------------------------------------------\n")
