@@ -1,20 +1,23 @@
 """BVSC 启动横幅与终端美化。
 
 风格参考 dirfinder / ffuf / gobuster 等安全工具：
-    - figlet 大字 Logo（纯 ASCII，兼容 GBK 终端）
+    - 粗体 block Logo（S/C 等字母区分度高，避免与 BVCC 混淆）
     - 版本 / 工具全名 / 仓库信息
-    - ANSI 配色（红 = Logo，绿 = 版本，青 = 描述）
+    - ANSI 配色（红 = Logo，绿 = 版本，白 = 工具名，青 = 描述）
 """
 from __future__ import annotations
 
 import click
 
-# BVSC ASCII Art（figlet "Standard" 字体，纯 ASCII 等宽对齐）
-_LOGO = r"""        ____   __  __   ____   ____  
-       / __ ) / / / /  / ___| / ___| 
-      / __  |/ / / /  | |     | |    
-     / /_/ / / / / /  | |___  | |___ 
-    /_____//_/ /_/    \____|  \____|"""
+# BVSC ASCII Art（figlet block 粗体字体）
+# 说明：block 字体的 S（实心锯齿块）与 C（开口矩形）区分明显，
+# 避免 Standard 字体下 S/C 形似导致误读为 BVCC。
+_LOGO = r"""██████╗ ██╗   ██╗███████╗ ██████╗
+██╔══██╗██║   ██║██╔════╝██╔════╝
+██████╔╝██║   ██║███████╗██║     
+██╔══██╗╚██╗ ██╔╝╚════██║██║     
+██████╔╝ ╚████╔╝ ███████║╚██████╗
+╚═════╝   ╚═══╝  ╚══════╝ ╚═════╝"""
 
 _TAGLINE = "Binary Vulnerability detection System Combined"
 _SUBTITLE = "Deep learning + Inline Assembly Comparison"
@@ -23,7 +26,7 @@ _SEP = "=" * 56
 
 
 def get_banner(version: str | None = None, color: bool = True) -> str:
-    """生成 dirfinder 风格的 BVSC 启动横幅。
+    """生成 BVSC 启动横幅。
 
     Args:
         version: 版本号（如 "1.0.0"），非 None 时显示。
