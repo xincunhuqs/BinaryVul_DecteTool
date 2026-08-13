@@ -1,17 +1,15 @@
 """BVSC 启动横幅与终端美化。
 
 风格参考 dirfinder / ffuf / gobuster 等安全工具：
-    - 粗体 block Logo（S/C 等字母区分度高，避免与 BVCC 混淆）
-    - 版本 / 工具全名 / 仓库信息
-    - ANSI 配色（红 = Logo，绿 = 版本，白 = 工具名，青 = 描述）
+    - 粗体 block Logo（S/C 字母区分度高，避免与 BVCC 混淆）
+    - 居中版本行 + 对齐的描述/仓库信息 + 双线分隔符
+    - ANSI 配色（红 = Logo 品牌色，绿 = 信息区）
 """
 from __future__ import annotations
 
 import click
 
-# BVSC ASCII Art（figlet block 粗体字体）
-# 说明：block 字体的 S（实心锯齿块）与 C（开口矩形）区分明显，
-# 避免 Standard 字体下 S/C 形似导致误读为 BVCC。
+# BVSC ASCII Art（figlet block 粗体字体，字母间隔 2 空格）
 _LOGO = r"""██████╗  ██╗   ██╗  ███████╗   ██████╗
 ██╔══██╗  ██║   ██║  ██╔════╝  ██╔════╝
 ██████╔╝  ██║   ██║  ███████╗  ██║     
@@ -22,7 +20,7 @@ _LOGO = r"""██████╗  ██╗   ██╗  ███████�
 _TAGLINE = "Binary Vulnerability detection System Combined"
 _SUBTITLE = "Deep learning + Inline Assembly Comparison"
 _REPO = "https://github.com/xincunhuqs/BinaryVul_DecteTool"
-_SEP = "=" * 56
+_SEP = "═" * 58
 
 
 def get_banner(version: str | None = None, color: bool = True) -> str:
@@ -37,20 +35,22 @@ def get_banner(version: str | None = None, color: bool = True) -> str:
     """
     if color:
         logo = click.style(_LOGO, fg="bright_red", bold=True)
-        head = click.style(f"BVSC v{version}", fg="bright_green", bold=True) if version \
-            else click.style("BVSC", fg="bright_green", bold=True)
-        tagline = click.style(f"  {_TAGLINE}", fg="bright_white")
-        subtitle = click.style(f"  {_SUBTITLE}", fg="cyan")
-        repo = click.style(f"  {_REPO}", fg="blue", dim=True)
-    else:
-        logo, head, tagline, subtitle, repo = (
-            _LOGO,
-            f"BVSC v{version}" if version else "BVSC",
-            f"  {_TAGLINE}",
-            f"  {_SUBTITLE}",
-            f"  {_REPO}",
+        title = (
+            click.style(f"              BVSC v{version}", fg="bright_green", bold=True)
+            if version else click.style("              BVSC", fg="bright_green", bold=True)
         )
-    lines = [logo, "", head + tagline, subtitle, repo, _SEP]
+        tagline = click.style(f"    {_TAGLINE}", fg="green")
+        subtitle = click.style(f"       {_SUBTITLE}", fg="green")
+        repo = click.style(f"       {_REPO}", fg="green", dim=True)
+        sep = click.style(_SEP, fg="green", dim=True)
+    else:
+        logo = _LOGO
+        title = f"              BVSC v{version}" if version else "              BVSC"
+        tagline = f"    {_TAGLINE}"
+        subtitle = f"       {_SUBTITLE}"
+        repo = f"       {_REPO}"
+        sep = _SEP
+    lines = [logo, "", title, tagline, subtitle, repo, sep]
     return "\n".join(lines)
 
 
