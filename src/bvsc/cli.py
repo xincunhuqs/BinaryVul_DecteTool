@@ -69,7 +69,75 @@ def _target_paths(exefile_path: str | None, exefile_folder_path: str | None) -> 
     raise click.UsageError("必须提供 -efp（单文件）或 -efdp（文件夹）之一")
 
 
-@click.command(name="bvsc", context_settings={"help_option_names": ["-h", "--help"]})
+# ----------------------------------------------------------------------
+# 自定义命令：专业分组帮助页（含 Banner / 分组 Options / 示例 / 退出码）
+# ----------------------------------------------------------------------
+class BvscCommand(click.Command):
+    """自定义 click Command，重写帮助渲染：Banner + 分组排版。"""
+
+    # 参数名 -> 分组
+    _GROUPS = [
+        ("Input 输入", ["exefile_path", "exefile_folder_path"]),
+        ("Scan Modes 扫描模式", ["normal_scan", "accurate_scan", "record_secure"]),
+        ("Output 输出", ["silent", "json_output", "output_file", "verbose"]),
+        ("Other 其他", ["config_file", "show_version"]),
+    ]
+
+    def format_help(self, ctx: click.Context, formatter: click.HelpFormatter) -> None:
+        """渲染美观的分组帮助页（banner 下方内容使用绿色主题）。"""
+        from bvsc import __version__
+        from bvsc.banner import get_banner
+
+        formatter.width = 100  # 避免长选项换行
+        formatter.write(get_banner(version=__version__, color=ctx.color) + "\n\n")
+        formatter.write_usage("BVSC.py", "[OPTIONS]")
+        formatter.write("\n\n")
+
+        def _title(text: str) -> str:
+            """分组标题：绿色加粗。"""
+            return click.style(f"  {text}", fg="green", bold=True) if ctx.color else f"  {text}"
+
+        def _item(term: str, desc: str) -> str:
+            """选项行：term 绿色加粗 + 对齐，desc 浅绿。"""
+            t = click.style(f"{term:<34}", fg="bright_green", bold=True) if ctx.color else f"{term:<34}"
+            d = click.style(desc, fg="green") if ctx.color else desc
+            return f"    {t}{d}"
+
+        # Description 简介
+        formatter.write(_title("Description 简介") + "\n")
+        desc = (
+            "    基于深度学习结合内联汇编比较的二进制漏洞检测工具\n"
+            "    对应论文: Binary vulnerability detection based on deep "
+            "learning combined with inline assembly comparison\n\n"
+        )
+        formatter.write(click.style(desc, fg="green") if ctx.color else desc)
+
+        # 分组选项
+        params = {p.name: p for p in self.get_params(ctx)}
+        for title, names in self._GROUPS:
+            formatter.write(_title(title) + "\n")
+            for name in names:
+                param = params.get(name)
+                if param is None:
+                    continue
+                term = ", ".join(param.opts)
+                formatter.write(_item(term, param.help or "") + "\n")
+            formatter.write("\n")
+
+        # Examples 示例
+        formatter.write(_title("Examples 示例") + "\n")
+        examples = [
+            ("单文件检测", "python BVSC.py -efp target.exe"),
+            ("批量检测 + 结果落盘", "python BVSC.py -efdp ./bin_folder -o result.txt"),
+            ("精确扫描（DeepSeek 研判）", "python BVSC.py -efp target.exe -acsc"),
+            ("JSON 结构化输出", "python BVSC.py -efp target.exe -json -silent"),
+        ]
+        for label, cmd in examples:
+            formatter.write(_item(label, cmd) + "\n")
+
+
+@click.command(name="bvsc", cls=BvscCommand,
+               context_settings={"help_option_names": ["-h", "--help"]})
 @click.option("-efp", "--exefile-path", "exefile_path", type=str, default=None,
               help="待检测的二进制文件路径（PE 格式）")
 @click.option("-efdp", "--exefile-folder-path", "exefile_folder_path", type=str, default=None,
@@ -114,7 +182,9 @@ def main(
               with inline assembly comparison
     """
     if show_version:
-        click.echo(f"bvsc {__version__}")
+        # 美化: 版本展示带 Banner
+        from bvsc.banner import print_banner
+        print_banner(version=__version__)
         return EXIT_OK
 
     # 日志初始化：verbose -> DEBUG；silent 时仍输出到 stderr
@@ -158,6 +228,11 @@ def main(
 
     # ------- 执行检测 -------
     from bvsc.detector import BinaryVulnerabilityDetector
+
+    # 美化: 非静默模式下打印启动 Banner（stdout），静默模式保持输出纯净
+    if not silent:
+        from bvsc.banner import print_banner
+        print_banner(version=__version__)
 
     exit_code = EXIT_OK
     try:
