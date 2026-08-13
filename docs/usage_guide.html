@@ -198,9 +198,11 @@ dataset:
 <h2 id="s5">5. 漏洞检测工具</h2>
 <div class="card">
   <h3>5.1 快速开始</h3>
-<pre><span class="k">python BVSC.py -efp target.exe</span>              <span class="c"># 检测单个 PE 文件</span>
+<pre><span class="k">python BVSC.py -efp target.exe</span>              <span class="c"># 检测单个 PE 文件（顶部展示彩色 Banner）</span>
 <span class="k">python BVSC.py -efdp ./bin_folder</span>           <span class="c"># 批量检测文件夹内全部 .exe</span>
-<span class="k">python BVSC.py -h</span>                             <span class="c"># 查看帮助</span></pre>
+<span class="k">python BVSC.py -h</span>                             <span class="c"># 查看分组帮助页（绿色主题）</span></pre>
+  <div class="callout info">🎨 <b>CLI 美化</b>：启动展示 dirfinder 风格彩色 Banner（红色 Logo + 版本 + 仓库信息）；
+  帮助页为绿色分组排版（Description / Input / Scan Modes / Output / Other / Examples）。</div>
 
   <h3>5.2 参数详解</h3>
   <table>
@@ -208,8 +210,8 @@ dataset:
     <tr><td><code>-efp, --exefile-path</code></td><td>待检测二进制文件路径（PE 格式）</td><td>-</td></tr>
     <tr><td><code>-efdp, --exefile-folder-path</code></td><td>待检测二进制文件夹（批量检测全部 .exe）</td><td>-</td></tr>
     <tr><td><code>-nrsc / --no-normal-scan</code></td><td>普通扫描（仅本地 Transformer 模型）；<code>--no-normal-scan</code> 关闭</td><td>开启</td></tr>
-    <tr><td><code>-acsc, --accurate-scan</code></td><td>精确扫描：DeepSeek 大模型研判降噪（需配置 <code>DEEPSEEK_API_KEY</code>）</td><td>关闭</td></tr>
-    <tr><td><code>-rsd, --record-secure</code></td><td>记录判定为安全的反汇编切片（带 NO_VULN 标签，供再训练）</td><td>关闭</td></tr>
+    <tr><td><code>-acsc / --no-accurate-scan</code></td><td>精确扫描：DeepSeek 大模型研判降噪（需配置 <code>DEEPSEEK_API_KEY</code>）</td><td>关闭</td></tr>
+    <tr><td><code>-rsd / --no-record-secure</code></td><td>记录判定为安全的反汇编切片（带 NO_VULN 标签，供再训练）</td><td>关闭</td></tr>
     <tr><td><code>-silent, --silent</code></td><td>静默模式：stdout 仅输出命中行（日志走 stderr，适合管道）</td><td>关闭</td></tr>
     <tr><td><code>-json, --json</code></td><td>JSON 结构化输出</td><td>关闭</td></tr>
     <tr><td><code>-o, --output</code></td><td>结果输出文件（与 stdout 同时输出）</td><td>-</td></tr>

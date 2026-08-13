@@ -88,15 +88,18 @@ pip install -e .
 ### 快速开始
 
 ```bash
-# 查看帮助（-h / --help 均可）
+# 查看帮助（-h / --help 均可，含 Banner 与分组说明）
 python BVSC.py -h
 
-# 检测单个二进制文件
+# 检测单个二进制文件（顶部展示 BVSC Banner）
 python BVSC.py -efp target.exe
 
 # 批量检测文件夹内全部 .exe
 python BVSC.py -efdp ./bin_folder
 ```
+
+> 🎨 CLI 美化：启动时展示 dirfinder 风格彩色 Banner（红色 Logo + 版本 + 仓库），
+> 帮助页为绿色分组排版（输入 / 扫描模式 / 输出 / 其他 / 示例）。
 
 ### 参数一览
 
@@ -111,9 +114,9 @@ python BVSC.py -efdp ./bin_folder
 
 | 参数 | 说明 | 默认 |
 |---|---|---|
-| `-nrsc, --normal-scan` | 普通扫描：仅本地 Transformer 模型 | `True` |
-| `-acsc, --accurate-scan` | 精确扫描：DeepSeek 大模型研判 | `False` |
-| `-rsd, --record-secure` | 记录安全反汇编切片（供再训练） | `False` |
+| `-nrsc` / `--no-normal-scan` | 普通扫描：仅本地 Transformer 模型（`--no-normal-scan` 关闭） | 开启 |
+| `-acsc` / `--no-accurate-scan` | 精确扫描：DeepSeek 大模型研判降噪（需 `DEEPSEEK_API_KEY`） | 关闭 |
+| `-rsd` / `--no-record-secure` | 记录安全反汇编切片（供再训练，带 NO_VULN 标签） | 关闭 |
 
 **输出**
 
