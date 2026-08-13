@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bvsc"
+version = "1.0.0"
+description = "Binary vulnerability detection based on deep learning combined with inline assembly comparison"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "Huqinsong", email = "xincunhuqs@example.com" },
+]
+keywords = ["binary", "vulnerability", "deep-learning", "transformer", "capstone", "disassembly"]
+dependencies = [
+    "torch>=1.8",
+    "capstone>=4.0",
+    "pefile>=2023.2.7",
+    "click>=8.0",
+    "openai>=1.0",
+    "pyyaml>=6.0",
+    "tqdm>=4.60",
+    "numpy>=1.21",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+bvsc = "bvsc.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+# 修复(B5): 自动将 src 加入 sys.path，使 README 中的 `pytest tests/ -v` 可直接运行
+pythonpath = ["src"]
+
+[tool.coverage.run]
+source = ["src/bvsc"]

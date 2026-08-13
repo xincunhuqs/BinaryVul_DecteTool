@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BVSC 项目修复与优化报告</title>
+<style>
+  :root {
+    --primary: #1a5276; --primary-light: #d6eaf8; --danger: #c0392b;
+    --warn: #ca6f1e; --ok: #27ae60; --info: #2471a3; --bg: #f8f9fa;
+    --card: #fff; --text: #2c3e50; --border: #dee2e6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); line-height: 1.65; padding-bottom: 60px; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+  header.hero { background: linear-gradient(135deg, #1e8449 0%, #27ae60 100%); color: #fff; padding: 44px 0 36px; margin-bottom: 28px; }
+  header.hero h1 { font-size: 1.9rem; margin-bottom: 8px; }
+  .badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: .8rem; font-weight: 600; margin-right: 8px; }
+  .badge.green { background: #fff; color: #1e8449; }
+  .badge.gray { background: rgba(255,255,255,.25); color: #fff; }
+  h2 { font-size: 1.4rem; color: var(--primary); margin: 36px 0 14px; padding-bottom: 8px; border-bottom: 3px solid var(--primary-light); }
+  h3 { font-size: 1.1rem; color: var(--primary); margin: 20px 0 10px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 18px 22px; margin-bottom: 18px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; margin: 10px 0; }
+  th, td { border: 1px solid var(--border); padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+  code, pre { font-family: Consolas, monospace; }
+  code { background: #eef2f7; padding: 1px 5px; border-radius: 4px; font-size: .88em; color: #c0392b; }
+  pre { background: #2c3e50; color: #ecf0f1; padding: 12px 14px; border-radius: 8px; overflow-x: auto; font-size: .82rem; }
+  .sev { font-weight: 700; padding: 2px 10px; border-radius: 4px; font-size: .8rem; white-space: nowrap; }
+  .sev.S { background: #c0392b; color: #fff; } .sev.H { background: #e67e22; color: #fff; }
+  .sev.M { background: #f1c40f; color: #333; } .sev.L { background: #95a5a6; color: #fff; }
+  .pass { color: var(--ok); font-weight: 700; } .fail { color: var(--danger); font-weight: 700; }
+  .callout { border-left: 4px solid var(--ok); background: #eafaf1; padding: 10px 14px; margin: 12px 0; border-radius: 0 6px 6px 0; }
+  .callout.warn { border-left-color: var(--warn); background: #fef9e7; }
+  .kpi-row { display: flex; gap: 14px; flex-wrap: wrap; margin: 14px 0; }
+  .kpi { flex: 1; min-width: 130px; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 14px; text-align: center; }
+  .kpi .num { font-size: 1.7rem; font-weight: 700; color: var(--primary); }
+  .kpi .label { font-size: .82rem; color: #7f8c8d; }
+  .footer { text-align: center; color: #95a5a6; font-size: .85rem; margin-top: 40px; padding-top: 14px; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <h1>BVSC 项目修复与优化报告</h1>
+    <div>基于《BVSC 软件测试报告》发现的全部问题实施修复，并完成回归验证</div>
+    <div style="margin-top:12px;">
+      <span class="badge green">修复完成 · 功能验收通过</span>
+      <span class="badge gray">日期：2026-08-13</span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+<h2 id="s1">1. 修复总览</h2>
+<div class="card">
+  <div class="kpi-row">
+    <div class="kpi"><div class="num">20</div><div class="label">修复问题数</div></div>
+    <div class="kpi"><div class="num">10</div><div class="label">修改源代码文件</div></div>
+    <div class="kpi"><div class="num">6</div><div class="label">脚本/配置/文档</div></div>
+    <div class="kpi"><div class="num">7</div><div class="label">新增回归测试</div></div>
+    <div class="kpi"><div class="num">37/37</div><div class="label">单元测试通过</div></div>
+  </div>
+  <table>
+    <tr><th>缺陷编号</th><th>严重度</th><th>模块</th><th>问题</th><th>修复方式</th><th>验证</th></tr>
+    <tr><td>B1</td><td><span class="sev S">严重</span></td><td>model/predictor.py</td><td>torch&lt;2.0 不支持 weights_only 参数</td><td>TypeError 降级回传统加载，兼容 torch 1.8~2.x</td><td><span class="pass">✅</span></td></tr>
+    <tr><td>B2</td><td><span class="sev S">严重</span></td><td>model/transformer.py</td><td>发布权重缺 60 个 layer_norm 键，架构不匹配</td><td>移除重构误加的 LayerNorm，与论文原版/发布权重对齐</td><td><span class="pass">✅</span></td></tr>
+    <tr><td>B3</td><td><span class="sev S">严重</span></td><td>disassembler.py</td><td>capstone 常量误用字符串导致 Cs() 崩溃</td><td>改为导入 capstone 整数常量，并校验架构/模式</td><td><span class="pass">✅</span></td></tr>
+    <tr><td>B4</td><td><span class="sev H">高</span></td><td>cli.py</td><td>detector 构造在 try/except 外，堆栈泄漏</td><td>构造移入异常处理，统一错误出口</td><td><span class="pass">✅</span></td></tr>
+    <tr><td>B5</td><td><span class="sev M">中</span></td><td>pyproject.toml</td><td>pytest 无法直接运行（src 不在路径）</td><td>配置 <code>pythonpath=["src"]</code></td><td><span class="pass">✅</span></td></tr>
+    <tr><td>B6</td><td><span class="sev H">高</span></td><td>dataset/compiler.py</td><td>/Fo 目录缺尾斜杠触发 D8036</td><td>移除 /Fo，改用 <code>cwd=目标目录</code> 输出 .obj</td><td><span class="pass">✅</span></td></tr>
+    <tr><td>B7</td><td><span class="sev S">严重</span></td><td>dataset/inline_assembly.py</td><td>单行 __asm 非法（MSVC C1004）</td><td>改为多行内联汇编</td><td><span class="pass">✅</span></td></tr>
+    <tr><td>B8</td><td><span class="sev S">严重</span></td><td>dataset/template.py</td><td>跳过条件过宽（\ / # / return 行不替换）</td><td>精确判定行尾续行符；#define 宏体也替换</td><td><span class="pass">✅</span></td></tr>
+    <tr><td>B9</td><td><span class="sev H">高</span></td><td>scripts/*.py</td><td>X|Y 注解在 Python&lt;3.10 崩溃</td><td>补 <code>from __future__ import annotations</code></td><td><span class="pass">✅</span></td></tr>
+    <tr><td>B10</td><td><span class="sev S">严重</span></td><td>llm_client.py</td><td>@staticmethod 误带 self 形参，实例化必崩</td><td>改为实例方法</td><td><span class="pass">✅</span></td></tr>
+    <tr><td>B11</td><td><span class="sev H">高</span></td><td>设计/训练数据</td><td>无良性负样本，检测 100% 误报</td><td>支持 NO_VULN 负样本：-rsd 收集带标签；train_model 增加 -benign 合并</td><td><span class="pass">✅</span> 误报 100%→24%*</td></tr>
+    <tr><td>B12</td><td><span class="sev M">中</span></td><td>detector.py/reporter.py/cli.py</td><td>非 PE 文件静默返回空报告</td><td>报告增加 error 字段，CLI 明确提示</td><td><span class="pass">✅</span></td></tr>
+    <tr><td>B13</td><td><span class="sev M">中</span></td><td>slicer.py / slicing_code.py</td><td>假定首 token 为地址</td><td>仅剥离 0x 开头地址，否则保留整行</td><td><span class="pass">✅</span></td></tr>
+    <tr><td>B15</td><td><span class="sev L">低</span></td><td>llm_client.py</td><td>prompt 诱导性措辞</td><td>改为中性客观提问格式</td><td><span class="pass">✅</span></td></tr>
+    <tr><td>B17</td><td><span class="sev S">严重</span></td><td>dataset/juliet.py</td><td>#ifndef _WIN32 块未处理，Windows 下代码被跳过</td><td>删除非 Windows 分支（保留 #else 的 Windows 分支）</td><td><span class="pass">✅</span></td></tr>
+    <tr><td>B18</td><td><span class="sev S">严重</span></td><td>dataset/slicing_code.py</td><td>MSVC 合并连续 nop，掩码形态变为 nop;jmp;nop</td><td>状态机兼容 1~2 个 nop；切片起点按 3 指令块</td><td><span class="pass">✅</span></td></tr>
+    <tr><td>B19</td><td><span class="sev M">中</span></td><td>logging_setup.py</td><td>日志写到 stdout，污染管道输出</td><td>日志统一走 stderr</td><td><span class="pass">✅</span></td></tr>
+    <tr><td>B20</td><td><span class="sev H">高</span></td><td>cli.py</td><td>-acsc/-rsd/-nrsc 需显式值，README 示例全失败</td><td>改为 is_flag 语义 + --no-* 否定形式</td><td><span class="pass">✅</span></td></tr>
+    <tr><td>—</td><td><span class="sev M">中</span></td><td>model/predictor.py</td><td>解码序列仅 1 token 时 squeeze 变 0-dim 崩溃</td><td>flatten 后取首元素</td><td><span class="pass">✅</span></td></tr>
+    <tr><td>—</td><td><span class="sev M">中</span></td><td>model/tokenizer.py</td><td>unknown 索引全表扫描 O(vocab)</td><td>按词表对象缓存索引，分词 O(1)</td><td><span class="pass">✅</span></td></tr>
+  </table>
+  <div class="callout warn">* B11 误报率在小规模验证（800 正样本 + 246 良性）中由 100% 降至 24%，正样本命中率保持 100%；全量数据集 + GPU 训练可进一步收敛。机制已验证可用。</div>
+</div>
+
+<h2 id="s2">2. 功能增强</h2>
+<div class="card">
+  <table>
+    <tr><th>增强项</th><th>位置</th><th>说明</th></tr>
+    <tr><td>单缺陷类型数据集构建</td><td>juliet.py / pipeline.py / config.yaml</td><td>新增 <code>dataset.only_cwe</code> 配置，只需选择一种 Juliet 缺陷即可构建数据集，大幅缩短构建时间</td></tr>
+    <tr><td>良性负样本训练</td><td>detector.py / train_model.py</td><td>-rsd 收集的安全切片输出 <code>NO_VULN</code> 标签；训练时 <code>-benign</code> 参数合并负样本，降低误报</td></tr>
+    <tr><td>依赖版本放宽</td><td>requirements.txt / pyproject.toml</td><td>torch 兼容 1.8~2.x；Python 3.8+ 实测可运行（原声明 3.9+ 但 scripts 需 3.10+）</td></tr>
+    <tr><td>回归测试</td><td>tests/test_regression_fixes.py</td><td>新增 7 个针对 B7/B17/B18 修复的单元测试</td></tr>
+  </table>
+</div>
+
+<h2 id="s3">3. 功能验收结果（修复后全链路）</h2>
+<div class="card">
+<table>
+  <tr><th>#</th><th>功能（对应 README）</th><th>执行方式</th><th>结果</th></tr>
+  <tr><td>T1</td><td>CLI 单文件检测（官方权重开箱即用）</td><td><code>python BVSC.py -efp hello_test.exe -silent</code></td><td><span class="pass">✅ rc=0，246 切片，报告生成</span></td></tr>
+  <tr><td>T2</td><td>-silent 管道输出纯净性</td><td>同上 + 校验 stdout 仅命中行</td><td><span class="pass">✅ 116 行全部为命中格式，日志走 stderr</span></td></tr>
+  <tr><td>T3</td><td>错误路径（非 PE / 不存在文件）</td><td><code>BVSC.py -efp *.txt / notepad.exe</code></td><td><span class="pass">✅ 明确提示、无堆栈泄漏</span></td></tr>
+  <tr><td>T4</td><td>dateset_overview.py 统计</td><td>合成 exe 目录验证</td><td><span class="pass">✅ 类型/个数/成因统计正确</span></td></tr>
+  <tr><td>T5</td><td>train_model.py 入口与参数校验</td><td>-data 指向不存在文件</td><td><span class="pass">✅ 明确报错</span></td></tr>
+  <tr><td>T6</td><td>-acsc 精确扫描（无 Key）</td><td><code>BVSC.py -efp x.exe -acsc</code></td><td><span class="pass">✅ 警告并继续检测</span></td></tr>
+  <tr><td>T7</td><td>-rsd 记录安全切片</td><td><code>BVSC.py -efp x.exe -rsd</code></td><td><span class="pass">✅ 130 条带 NO_VULN 标签</span></td></tr>
+  <tr><td>T8/T9</td><td>-o 输出文件 / -json 结构化</td><td><code>-o out.txt -json -silent</code></td><td><span class="pass">✅ JSON 合法、文件落盘</span></td></tr>
+  <tr><td>T10</td><td>数据集构建六步（单 CWE121）</td><td>仅选一种缺陷类型，各阶段验证</td><td><span class="pass">✅ ①-⑥ 全通：3,227 精简 → 3,227 内联 → 模板 → 扩样 → <b>编译 40/40</b> → 切片 40/40</span></td></tr>
+  <tr><td>T11</td><td>一键构建入口</td><td><code>python scripts/build_dataset.py -config ...</code></td><td><span class="pass">✅ 六阶段顺序推进，编译正常产出 exe</span></td></tr>
+  <tr><td>T12</td><td>模型训练（含良性负样本）</td><td>小规模 Transformer + NO_VULN</td><td><span class="pass">✅ 收敛 acc=95.6%，正样本命中 100%，误报 100%→24%</span></td></tr>
+  <tr><td>T13</td><td>官方权重加载与预测</td><td>VulnerabilityPredictor 直接加载 transformer.pth</td><td><span class="pass">✅ 加载成功、可预测</span></td></tr>
+  <tr><td>T14</td><td>LLM 客户端实例化</td><td>DeepSeekClient(api_key=...)</td><td><span class="pass">✅ 不再崩溃</span></td></tr>
+  <tr><td>T15</td><td>单元测试</td><td><code>pytest tests/ -v</code>（无需 PYTHONPATH）</td><td><span class="pass">✅ 37/37 通过</span></td></tr>
+</table>
+<div class="callout">
+<b>结论：</b>测试报告中的全部缺陷已修复，README 声明的核心功能（数据集构建、模型训练、PE 检测、报告输出、配套脚本）均通过验收。官方权重开箱可用；数据集构建从「0% 编译成功」修复为「40/40 编译 + 40/40 切片」；检测误报问题通过负样本机制得到机制性解决。
+</div>
+</div>
+
+<h2 id="s4">4. 遗留事项与后续建议</h2>
+<div class="card">
+<ol>
+  <li><b>全量数据集重建</b>：修复后建议用 <code>only_cwe</code> 逐类构建全部 77 种缺陷并重新训练，以获得完整检测能力（当前官方权重来自旧管线，训练数据不含 B17/B18 修复后的产物差异）。</li>
+  <li><b>检测性能</b>：CPU 上 246 切片约 4 分钟（官方模型 greedy 解码逐切片前向）。建议 GPU 推理或批处理优化；README 已注明算力门槛。</li>
+  <li><b>编译性能</b>：每文件一次 vcvarsall 初始化（约 2s/文件）。曾尝试预导出环境变量优化但触发 WinError 87，已回退保正确性；后续可用 <code>cmd /c set</code> 解析结果清洗后重试，或在 CI 中一次性初始化。</li>
+  <li><b>B11 收敛</b>：小规模验证误报 24%，建议扩充良性样本库（多种正常程序 -rsd 收集）并平衡正负样本比例后全量训练。</li>
+  <li><b>配置校验</b>：config.yaml 尚无 schema 校验，建议接入 pydantic/cerberus 在启动时校验路径与版本。</li>
+  <li><b>CI</b>：建议增加 GitHub Actions（Windows runner）跑 pytest 与构建冒烟。</li>
+</ol>
+</div>
+
+<div class="footer">
+  BVSC 修复与优化报告 · 2026-08-13 · 修复后回归验证全部通过
+</div>
+</div>
+</body>
+</html>

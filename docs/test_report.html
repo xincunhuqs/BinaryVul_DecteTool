@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BVSC 二进制漏洞检测工具 — 软件测试报告</title>
+<style>
+  :root {
+    --primary: #1a5276;
+    --primary-light: #d6eaf8;
+    --accent: #e67e22;
+    --danger: #c0392b;
+    --warn: #ca6f1e;
+    --ok: #27ae60;
+    --info: #2471a3;
+    --bg: #f8f9fa;
+    --card: #ffffff;
+    --text: #2c3e50;
+    --border: #dee2e6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif; background: var(--bg); color: var(--text); line-height: 1.65; padding-bottom: 60px; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+  header.hero { background: linear-gradient(135deg, #1a5276 0%, #2471a3 100%); color: #fff; padding: 48px 0 40px; margin-bottom: 32px; }
+  header.hero h1 { font-size: 2rem; margin-bottom: 8px; }
+  header.hero .sub { opacity: .9; font-size: 1.05rem; }
+  .badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: .8rem; font-weight: 600; margin-right: 8px; vertical-align: middle; }
+  .badge.red { background: #c0392b; color: #fff; }
+  .badge.orange { background: #e67e22; color: #fff; }
+  .badge.green { background: #27ae60; color: #fff; }
+  .badge.blue { background: #2980b9; color: #fff; }
+  .badge.gray { background: #7f8c8d; color: #fff; }
+  h2 { font-size: 1.45rem; color: var(--primary); margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 3px solid var(--primary-light); }
+  h3 { font-size: 1.15rem; color: var(--primary); margin: 24px 0 12px; }
+  h4 { font-size: 1rem; color: #34495e; margin: 16px 0 8px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: 12px 0; }
+  th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--primary-light); color: var(--primary); font-weight: 600; white-space: nowrap; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  code, pre { font-family: Consolas, "Courier New", monospace; }
+  code { background: #eef2f7; padding: 1px 6px; border-radius: 4px; font-size: .88em; color: #c0392b; }
+  pre { background: #2c3e50; color: #ecf0f1; padding: 14px 16px; border-radius: 8px; overflow-x: auto; font-size: .84rem; line-height: 1.5; margin: 10px 0; }
+  pre .cmd { color: #f39c12; font-weight: 700; }
+  pre .ok { color: #2ecc71; }
+  pre .err { color: #e74c3c; }
+  pre .dim { color: #95a5a6; }
+  .callout { border-left: 4px solid var(--accent); background: #fef9e7; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+  .callout.danger { border-left-color: var(--danger); background: #fdedec; }
+  .callout.ok { border-left-color: var(--ok); background: #eafaf1; }
+  .callout.info { border-left-color: var(--info); background: #eaf2f8; }
+  .sev { font-weight: 700; padding: 2px 10px; border-radius: 4px; font-size: .82rem; white-space: nowrap; }
+  .sev.S { background: #c0392b; color: #fff; }
+  .sev.H { background: #e67e22; color: #fff; }
+  .sev.M { background: #f1c40f; color: #333; }
+  .sev.L { background: #95a5a6; color: #fff; }
+  .toc { columns: 2; column-gap: 32px; font-size: .95rem; }
+  .toc li { margin: 4px 0; list-style: none; }
+  .toc a { color: var(--primary); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .kpi-row { display: flex; gap: 16px; flex-wrap: wrap; margin: 16px 0; }
+  .kpi { flex: 1; min-width: 150px; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; }
+  .kpi .num { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
+  .kpi .label { font-size: .85rem; color: #7f8c8d; margin-top: 4px; }
+  .kpi .num.red { color: var(--danger); }
+  .footer { text-align: center; color: #95a5a6; font-size: .85rem; margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .tag { display:inline-block; background:#eef2f7; border:1px solid #d5dbe3; border-radius:4px; padding:0 6px; font-size:.78rem; margin:0 3px 3px 0; color:#34495e;}
+  .summary-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin:16px 0;}
+  .summary-grid .item { background:#fff; border:1px solid var(--border); border-radius:8px; padding:14px 18px;}
+  .summary-grid .item h4 { margin-top:0; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <h1>BVSC 二进制漏洞检测工具 — 软件测试报告</h1>
+    <div class="sub">Binary Vulnerability detection System Combined · 基于深度学习结合内联汇编比较</div>
+    <div style="margin-top:14px;">
+      <span class="badge red">结论：核心功能不可用（需修复后重新验证）</span>
+      <span class="badge gray">测试日期：2026-08-12</span>
+      <span class="badge gray">测试人：软件测试工程师（AI 代理）</span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- ======================= 1. 概述 ======================= -->
+<h2 id="sec1">1. 测试概述</h2>
+<div class="card">
+  <h3>1.1 测试目的</h3>
+  <p>依据项目 README 描述的全部功能，对 <code>bvsc_tool</code>（论文《Binary vulnerability detection based on deep learning combined with inline assembly comparison》工程实现）进行系统性功能验证，包括：</p>
+  <ul style="margin:8px 0 8px 24px;">
+    <li>缺陷数据集构建六步管线（Juliet 精简 → 内联汇编 → 模板 → 扩样 → 编译 → 切片）；</li>
+    <li>Transformer 模型训练（<b>按需求仅选取单一种类 Juliet 缺陷</b>）；</li>
+    <li>PE 二进制检测 CLI（普通扫描 / 精确扫描 / 批量检测 / 多种输出格式）；</li>
+    <li>配套工具（数据集统计脚本、LLM 研判客户端、报告输出）。</li>
+  </ul>
+  <h3>1.2 测试范围与方法</h3>
+  <p>采用「静态代码审查 + 单元测试 + 黑盒 CLI 测试 + 端到端集成测试」相结合的方法。为验证整条链路，在集成测试阶段于运行时注入了已确认缺陷的临时绕过补丁（见 4.5 节），以区分「缺陷本身」与「缺陷下游功能」的可用性。</p>
+  <h3>1.3 被测对象版本</h3>
+  <p><code>bvsc 1.0.0</code> · 项目根目录 <code>C:\Users\xincun\Desktop\pi-agetfolder\bvsc_tool</code>（2026-08-12 快照）</p>
+</div>
+
+<!-- ======================= 2. 测试环境 ======================= -->
+<h2 id="sec2">2. 测试环境</h2>
+<div class="card">
+<table>
+  <tr><th style="width:200px;">项目</th><th>配置</th><th style="width:260px;">与项目要求比对</th></tr>
+  <tr><td>操作系统</td><td>Windows 10 / 11（build 26200.9168）</td><td>✅ 支持</td></tr>
+  <tr><td>Python</td><td>3.8.6（D:\python386）</td><td>⚠️ README 声明 ≥3.9，实测部分脚本需 3.10+</td></tr>
+  <tr><td>PyTorch</td><td>1.8.1+cpu</td><td>❌ requirements 要求 torch≥2.0（导致 Bug#1）</td></tr>
+  <tr><td>Capstone / pefile</td><td>5.0.6 / 2024.x</td><td>✅ 满足</td></tr>
+  <tr><td>click / pyyaml / numpy / openai</td><td>已安装（openai SDK 1.x）</td><td>✅ 满足</td></tr>
+  <tr><td>pytest</td><td>8.3.5</td><td>✅ 满足</td></tr>
+  <tr><td>编译器 A：MSVC</td><td>VS 2019 Community 16.11.42（cl 19.29.30157，Hostx86 可出 32 位 PE）</td><td>✅ 与 config 默认路径一致</td></tr>
+  <tr><td>编译器 B：MinGW-w64</td><td>gcc 8.1.0（x86_64，无 multilib，不能出 32 位）</td><td>⚠️ VSCode 本地编译器，仅 64 位</td></tr>
+  <tr><td>测试数据</td><td>Juliet C/C++ 测试套件 v1.3（官方只读目录），data/total_defect_slicing.txt（104,741 条切片 / 77 类）</td><td>✅ 已有构建产物</td></tr>
+  <tr><td>模型文件</td><td>models/transformer.pth（185MB，词表 999）+ models/tokenize_dict.txt</td><td>⚠️ 与当前代码架构不匹配（Bug#2）</td></tr>
+</table>
+<div class="callout info">
+  <b>说明：</b>本机已部署 VSCode + MinGW-w64（gcc 8.1.0，仅支持 64 位目标）与 MSVC 2019（x86/x64 目标均支持）。因 BVSC 仅支持 <b>x86/32 位 PE</b>（README「已知限制」），且 config 默认指向 MSVC，本次编译链路以 <b>MSVC x86 工具链</b>为基准；MinGW 因缺 multilib 无法产出 32 位 PE，仅作记录。
+</div>
+</div>
+
+<!-- ======================= 3. 测试执行记录 ======================= -->
+<h2 id="sec3">3. 测试执行记录（命令与响应）</h2>
+
+<div class="card">
+<h3>3.1 单元测试</h3>
+<h4>TC-01：直接运行 README 推荐的测试命令</h4>
+<pre><span class="cmd">&gt; python -m pytest tests/ -v</span>
+<span class="err">ERROR collecting tests/test_config.py ... ModuleNotFoundError: No module named 'bvsc'</span>
+<span class="err">6 errors during collection（tests 下全部 6 个测试文件无法导入）</span></pre>
+<div class="callout danger"><b>失败</b>：README 声称 <code>pytest tests/ -v</code> 可运行，实测因 <code>src</code> 不在 sys.path，测试全部无法收集（Bug#5）。</div>
+
+<h4>TC-02：设置 PYTHONPATH 后重跑</h4>
+<pre><span class="cmd">&gt; PYTHONPATH=src python -m pytest tests/ -v</span>
+<span class="ok">30 passed in 1.22s（config 8 · detector 3 · juliet 4 · slicer 5 · template 4 · tokenizer 6）</span></pre>
+<div class="callout ok"><b>通过</b>：30/30 单元测试通过。覆盖：配置加载、检测编排（桩）、Juliet 预处理、切片、模板、分词器。</div>
+</div>
+
+<div class="card">
+<h3>3.2 CLI 入口测试</h3>
+<h4>TC-03：帮助与版本</h4>
+<pre><span class="cmd">&gt; python BVSC.py -h</span>  →  完整用法输出，含全部 12 个参数（-efp/-efdp/-nrsc/-acsc/-rsd/-silent/-json/-o/-config/-v/-version/-h）
+<span class="cmd">&gt; python BVSC.py -version</span>  →  <span class="ok">bvsc 1.0.0，退出码 0</span>
+<span class="cmd">&gt; python BVSC.py</span>（无参数）  →  <span class="err">[!] 必须提供 -efp（单文件）或 -efdp（文件夹）之一</span>，退出码 1</pre>
+
+<h4>TC-04：参数错误路径（黑盒）</h4>
+<table>
+  <tr><th>用例</th><th>命令</th><th>结果</th><th>退出码</th><th>判定</th></tr>
+  <tr><td>不存在的文件</td><td><code>python BVSC.py -efp C:\nonexistent.exe</code></td><td>[!] 文件不存在</td><td>1</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS</td></tr>
+  <tr><td>不存在的文件夹</td><td><code>python BVSC.py -efdp C:\nonexistent_dir</code></td><td>[!] 文件夹不存在</td><td>1</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS</td></tr>
+  <tr><td>扫描模式全关</td><td><code>python BVSC.py -efp x.exe -nrsc false -acsc false</code></td><td>[!] 请至少开启一种扫描模式</td><td>1</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS</td></tr>
+  <tr><td>无效配置</td><td><code>python BVSC.py -config nonexistent.yaml -efp x.exe</code></td><td>[!] 配置加载失败: 配置文件不存在</td><td>1</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS</td></tr>
+  <tr><td>空文件夹无 exe</td><td><code>python BVSC.py -efdp data\temp_synth_exe</code></td><td>[!] 未找到待检测的 .exe 文件</td><td>1</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS</td></tr>
+  <tr><td>非 PE 文件检测</td><td><code>python BVSC.py -efp data\total_defect_slicing.txt</code></td><td><b>完整 Python 堆栈泄漏到终端</b></td><td>1</td><td class="sev M" style="background:#c0392b;color:#fff;">FAIL（Bug#3/#4）</td></tr>
+  <tr><td>系统文件检测</td><td><code>python BVSC.py -efp C:\Windows\notepad.exe</code></td><td><b>完整 Python 堆栈泄漏</b>（disassembler 初始化崩溃）</td><td>1</td><td class="sev M" style="background:#c0392b;color:#fff;">FAIL（Bug#3/#4）</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>3.3 数据集构建管线（单缺陷类型 CWE121_Stack_Based_Buffer_Overflow）</h3>
+<p>按用户要求仅选取 <b>一种</b> Juliet 缺陷类型构建数据集，逐阶段验证：</p>
+<table>
+  <tr><th>阶段</th><th>验证点</th><th>结果</th><th>说明</th></tr>
+  <tr><td>① Juliet 精简预处理</td><td>收集缺陷源文件、去空白、去双环境宏、bad/good 拆分</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS</td><td>CWE121 生成精简源文件 3,227 个（bad 文件）</td></tr>
+  <tr><td>② 内联汇编插入</td><td>缺陷标识 __asm / defact_flage 注入</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS</td><td>3,227 个文件均含标识（修复 Bug#7 后）</td></tr>
+  <tr><td>③ 缺陷模板生成</td><td>变量/常量 → !!variable_i! / !!digit_i!</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS</td><td>3,227 个模板</td></tr>
+  <tr><td>④ 模板实例化扩样</td><td>每模板生成 N 个随机样本</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS</td><td>N=3 时生成 9,681 个（23.8s）</td></tr>
+  <tr><td>⑤ MSVC 编译</td><td>cl.exe 编译为 32 位 PE</td><td class="sev M" style="background:#c0392b;color:#fff;">FAIL</td><td><b>0/9,681 编译成功</b>（Bug#6/#7/#8）</td></tr>
+  <tr><td>⑥ 反汇编切片提取</td><td>nop-jmp-nop 掩码定位 + 切片</td><td class="sev M" style="background:#f39c12;color:#fff;">阻塞</td><td>依赖⑤，无 exe 可切</td></tr>
+</table>
+
+<h4>TC-05：编译失败定位实验</h4>
+<pre><span class="cmd">&gt; cl /I conf/testcasesupport /Fe"out\test" /Fo"out" io.c std_thread.c K:\sample.c</span>
+<span class="err">cl: error D8036 :/Fo...与源文件冲突</span>          <span class="dim">← /Fo 目录无尾部反斜杠（Bug#6）</span>
+<span class="cmd">&gt; cl ... /Fo"out\" io.c std_thread.c K:\sample.c</span>
+<span class="err">C2400/C1004 内联汇编语法错误</span>                   <span class="dim">← 单行 __asm（Bug#7）</span>
+<span class="cmd">&gt; 多行 __asm + /Fo 尾斜杠</span>
+<span class="err">C2065: 'data'/'inputBuffer'/'recvResult' 未声明</span> <span class="dim">← 模板替换不一致（Bug#8）</span></pre>
+<p>逐步隔离出 <b>三层独立缺陷</b>（详见 4.2 节缺陷明细），修正三层后编译链路可打通（变体 B 实验：源文件被正确识别并进入编译，仅余模板不一致导致的标识符错误）。</p>
+<div class="callout">
+<b>验证结论：</b>阶段①-④ 设计正确、可复用；阶段⑤-⑥ 因 3 个代码缺陷无法产出任何切片。工具自带的 <code>data/total_defect_slicing.txt</code>（104,741 条）证明作者环境曾成功跑通过该管线，但当前代码状态下<b>新用户无法复现</b>。
+</div>
+</div>
+
+<div class="card">
+<h3>3.4 模型训练（单缺陷类型 CWE416_Use_After_Free）</h3>
+<h4>TC-06：训练链路（1,500 条切片子集，小型 Transformer 128d/2 层）</h4>
+<pre><span class="cmd">&gt; python e2e_train_detect.py   # generate_model_data → build_vocabulary → split → train_model</span>
+[数据] 单缺陷类型 CWE416_Use_After_Free 切片数: 5020（取自作者先前构建产物）
+[词表] 大小: 400
+[训练] acc=99.28% loss=0.061680 耗时=1002.33s（CPU，5 epochs，batch=16，1,275 样本）</pre>
+<table>
+  <tr><th>环节</th><th>结果</th><th>说明</th></tr>
+  <tr><td>generate_model_data 格式转换</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS</td><td>切片\tCWE → 带 S/E 标记</td></tr>
+  <tr><td>词表构建/保存/加载</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS</td><td>400 词，键序不变量成立</td></tr>
+  <tr><td>train/test 划分</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS</td><td>85/15，seed=42 可复现</td></tr>
+  <tr><td>Transformer 前向/反向/保存</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS</td><td>训练收敛，checkpoint 可保存</td></tr>
+  <tr><td>模型加载（torch&lt;2.0）</td><td class="sev M" style="background:#c0392b;color:#fff;">FAIL</td><td><code>weights_only</code> 参数 torch1.8 不支持（Bug#1，绕过后可继续）</td></tr>
+  <tr><td>预训练权重加载（严格模式）</td><td class="sev M" style="background:#c0392b;color:#fff;">FAIL</td><td>缺 60 个 layer_norm 键（Bug#2）</td></tr>
+</table>
+<div class="callout info"><b>注意：</b>训练环节本身（数据→训练→保存）通过验证；失败发生在<b>预测器加载</b>环节。训练耗时在 CPU 上约 3.3 分钟/epoch/1,275 样本，全量 10 万切片默认 6 epochs 需数天（性能问题 P2）。</div>
+</div>
+
+<div class="card">
+<h3>3.5 检测端到端（真实 PE：MSVC 编译的 hello_test.exe，101KB x86）</h3>
+<h4>TC-07：完整链路 反汇编→切片→预测→报告</h4>
+<pre><span class="cmd">&gt; python BVSC.py -efp hello_test.exe</span>
+<span class="err">Traceback ... Cs('CS_ARCH_X86','CS_MODE_32') → ctypes.ArgumentError: wrong type</span>   <span class="dim">← Bug#3 字符串常量</span>
+
+<span class="cmd">&gt; （注入 Bug#1/#3 修复后重测）</span>
+[检测] hello_test.exe: 切片=246 候选=246 确认=246</pre>
+<table>
+  <tr><th>环节</th><th>结果</th><th>说明</th></tr>
+  <tr><td>PE 解析 + .text 反汇编</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS*</td><td>*需修复 Bug#3；capstone 5.0.6 正常工作</td></tr>
+  <tr><td>定长切片（100 指令/块）</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS</td><td>246 个切片</td></tr>
+  <tr><td>逐切片模型预测</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS*</td><td>*需修复 Bug#1</td></tr>
+  <tr><td>文本报告（*_result.txt）</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS</td><td>格式与 README 一致</td></tr>
+  <tr><td>JSON 报告（*_result.json）</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS</td><td>结构化字段完整</td></tr>
+  <tr><td>-silent / -json / -o 输出</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS</td><td>stdout/stderr 分离正确</td></tr>
+  <tr><td><b>检测判别准确性</b></td><td class="sev M" style="background:#c0392b;color:#fff;">FAIL</td><td><b>良性程序 246/246 切片全部报漏洞（100% 误报）</b>（Bug#11 设计缺陷）</td></tr>
+</table>
+<div class="callout danger">
+<b>关键发现：</b>对无任何漏洞的 hello_test.exe，全部 246 个切片均被判为 CWE416_Use_After_Free。根因：训练数据只含缺陷正样本、无良性负样本，seq2seq 解码器无条件输出 CWE 标签——<b>模型不具备「无漏洞」判别能力</b>，任何输入都会命中某一 CWE。这是论文方法在本实现中的根本性局限。
+</div>
+</div>
+
+<div class="card">
+<h3>3.6 配套工具测试</h3>
+<table>
+  <tr><th>用例</th><th>命令/操作</th><th>结果</th><th>判定</th></tr>
+  <tr><td>数据集统计</td><td><code>python scripts/dateset_overview.py &lt;exe根目录&gt;</code></td><td>TypeError: unsupported operand type(s) for |（str|Path）</td><td class="sev M" style="background:#c0392b;color:#fff;">FAIL（Bug#9）</td></tr>
+  <tr><td>构建脚本入口</td><td><code>python scripts/build_dataset.py -h</code></td><td>同上 TypeError（Path|None）</td><td class="sev M" style="background:#c0392b;color:#fff;">FAIL（Bug#9）</td></tr>
+  <tr><td>训练脚本入口</td><td><code>python scripts/train_model.py -h</code></td><td>同上 TypeError</td><td class="sev M" style="background:#c0392b;color:#fff;">FAIL（Bug#9）</td></tr>
+  <tr><td>LLM 空 Key</td><td><code>DeepSeekClient(api_key="")</code></td><td>抛出 LlmError（提示设置 DEEPSEEK_API_KEY）</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS</td></tr>
+  <tr><td>LLM 实例化</td><td><code>DeepSeekClient(api_key="sk-...")</code></td><td>TypeError: _build_client() missing 1 positional argument: 'api_key'</td><td class="sev M" style="background:#c0392b;color:#fff;">FAIL（Bug#10）</td></tr>
+  <tr><td>LLM 无效 Key 调用</td><td><code>client.analyze(...)</code></td><td>被 Bug#10 阻断，未能到达网络层</td><td class="sev M" style="background:#f39c12;color:#fff;">阻塞</td></tr>
+  <tr><td>verdict 提取</td><td>4 组关键词样本</td><td>准确且可利用 / 准确但不可利用 / 不准确 / 无关键词 → 全部提取正确</td><td class="sev M" style="background:#27ae60;color:#fff;">PASS</td></tr>
+</table>
+</div>
+
+<!-- ======================= 4. 缺陷清单 ======================= -->
+<h2 id="sec4">4. 缺陷清单与修复建议</h2>
+
+<div class="card">
+<h3>4.1 缺陷汇总</h3>
+<div class="kpi-row">
+  <div class="kpi"><div class="num red">6</div><div class="label">严重 (S)</div></div>
+  <div class="kpi"><div class="num" style="color:var(--warn);">5</div><div class="label">高 (H)</div></div>
+  <div class="kpi"><div class="num" style="color:#f1c40f;">4</div><div class="label">中 (M)</div></div>
+  <div class="kpi"><div class="num">1</div><div class="label">低 (L)</div></div>
+  <div class="kpi"><div class="num">16</div><div class="label">缺陷总数</div></div>
+</div>
+<table>
+  <tr><th>#</th><th>严重度</th><th>模块</th><th>问题简述</th><th>影响</th></tr>
+  <tr><td>B1</td><td><span class="sev S">严重</span></td><td>model/predictor.py</td><td><code>torch.load(..., weights_only=False)</code> torch&lt;2.0 不支持</td><td>检测功能在此环境完全不可用</td></tr>
+  <tr><td>B2</td><td><span class="sev S">严重</span></td><td>model/transformer.py + 发布权重</td><td>transformer.pth 与当前架构不匹配（缺 60 个 layer_norm 键，词表 999 vs 1000）</td><td>官方权重开箱即崩，strict=False 也会静默降级</td></tr>
+  <tr><td>B3</td><td><span class="sev S">严重</span></td><td>disassembler.py</td><td>_ARCH_MAP/_MODE_MAP 用字符串，capstone Cs() 需整数常量</td><td>反汇编器 100% 初始化崩溃；检测与切片两处都挂</td></tr>
+  <tr><td>B7</td><td><span class="sev S">严重</span></td><td>dataset/inline_assembly.py</td><td>单行 <code>__asm { ...; label: nop; }</code> 非法，MSVC 报 C1004</td><td>数据集构建阶段⑤编译全部失败（根因之一）</td></tr>
+  <tr><td>B8</td><td><span class="sev S">严重</span></td><td>dataset/template.py</td><td>跳过条件过宽：含 <code>\</code>/<code>#</code>/<code>return</code> 的行不替换变量，<code>'\0'</code>、<code>#define sizeof(data)</code> 均中招</td><td>扩样后变量名不一致 → 编译失败（根因之二）</td></tr>
+  <tr><td>B10</td><td><span class="sev S">严重</span></td><td>llm_client.py</td><td><code>@staticmethod _build_client(self, api_key)</code> 签名错误</td><td>精确扫描（-acsc）功能必然崩溃</td></tr>
+  <tr><td>B4</td><td><span class="sev H">高</span></td><td>cli.py</td><td>detector 构造在 try/except 之外</td><td>异常时完整堆栈泄漏到终端，破坏 CLI 约定</td></tr>
+  <tr><td>B6</td><td><span class="sev H">高</span></td><td>dataset/compiler.py</td><td><code>/Fo"目录"</code> 缺尾部反斜杠 → cl D8036</td><td>所有编译命令直接失败（根因之三）</td></tr>
+  <tr><td>B9</td><td><span class="sev H">高</span></td><td>scripts/*.py（3 个）</td><td><code>X|Y</code> 注解无 <code>from __future__ import annotations</code></td><td>Python&lt;3.10 全部脚本无法运行，与 README 3.9+ 矛盾</td></tr>
+  <tr><td>B11</td><td><span class="sev H">高</span></td><td>设计/训练数据</td><td>训练集无良性负样本，模型无「无漏洞」类</td><td>良性二进制 100% 误报，检测无实际判别力</td></tr>
+  <tr><td>B14</td><td><span class="sev H">高</span></td><td>工程/文档</td><td>环境版本声明不一致（torch≥2.0 但环境 1.8.1；3.9+ 实际需 3.10+）</td><td>用户按 README 安装即踩坑</td></tr>
+  <tr><td>B5</td><td><span class="sev M">中</span></td><td>测试</td><td>pytest 无 PYTHONPATH=src 无法收集用例</td><td>README 测试命令不可用</td></tr>
+  <tr><td>B12</td><td><span class="sev M">中</span></td><td>detector.py</td><td>非 PE 文件静默返回空报告（仅日志）</td><td>用户无感知，排查困难</td></tr>
+  <tr><td>B13</td><td><span class="sev M">中</span></td><td>slicer.py</td><td><code>line.split(" ")[1:]</code> 假定首 token 为地址</td><td>对无地址文本切片会丢第一条指令</td></tr>
+  <tr><td>B15</td><td><span class="sev L">低</span></td><td>llm_client.py</td><td>prompt 措辞「确保存在…漏洞的真实性」诱导性偏置</td><td>大模型研判结果偏向确认，降噪效果打折</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>4.2 严重缺陷详情与修复建议</h3>
+
+<h4>B1 · torch.load 兼容性（严重）</h4>
+<p><b>复现：</b><code>python BVSC.py -efp hello_test.exe</code>（torch 1.8.1）</p>
+<pre>ModelError: 模型权重加载失败: ...transformer.pth: 'weights_only' is an invalid
+keyword argument for Unpickler()</pre>
+<p><b>根因：</b><code>weights_only</code> 为 torch≥2.0 新增参数，环境为 1.8.1；requirements 与实际环境脱节。</p>
+<p><b>修复建议：</b></p>
+<pre>try:
+    state_dict = torch.load(checkpoint, map_location=device, weights_only=False)
+except TypeError:          # torch < 2.0
+    state_dict = torch.load(checkpoint, map_location=device)</pre>
+<p>或在 requirements/pyproject 中固定 <code>torch&gt;=2.0</code> 并加入安装时校验。</p>
+
+<h4>B2 · 发布权重与代码架构不匹配（严重）</h4>
+<p><b>复现：</b>严格加载 <code>models/transformer.pth</code></p>
+<pre>Missing key(s): encoder.layers.*.enc_self_attn.layer_norm.weight/bias（共 60 个键）
+= 6层×(enc 2 + dec 3)个模块 × 2 参数；且词表 999 ≠ 默认 1000</pre>
+<p><b>根因：</b>重构（transformer_v3.py → transformer.py）时在 <code>MultiHeadAttention</code> 与 <code>PoswiseFeedForwardNet</code> 中新增了 LayerNorm，但权重未重新训练，导致结构不一致。</p>
+<p><b>修复建议（二选一）：</b></p>
+<ol style="margin:8px 0 8px 24px;">
+  <li>回退架构：删除两处 layer_norm 使代码与旧权重一致（改动小，立即可用）；或</li>
+  <li>用当前架构重新训练并重新发布权重；加载时对缺失键给出明确告警而非静默（勿用 strict=False 蒙混）。</li>
+</ol>
+
+<h4>B3 · capstone 常量误用字符串（严重）</h4>
+<pre>_ARCH_MAP = {"x86": "CS_ARCH_X86"}          # 应为整数 1
+_MODE_MAP = {"32": "CS_MODE_32"}            # 应为整数 2
+...
+self._md = Cs(_ARCH_MAP[arch], _MODE_MAP[str(mode)])   # → ctypes.ArgumentError</pre>
+<p><b>修复建议：</b></p>
+<pre>from capstone import CS_ARCH_X86, CS_MODE_32, CS_MODE_64
+_ARCH_MAP = {"x86": CS_ARCH_X86}
+_MODE_MAP = {"32": CS_MODE_32, "64": CS_MODE_64}</pre>
+
+<h4>B7 · 单行内联汇编非法（严重）</h4>
+<p><b>复现：</b>最小 C 程序 <code>int main(){ __asm { nop; nop; jmp x; x: nop; } return 0; }</code> 用 cl x86 编译 → <code>C1004 意外文件尾</code>；改为多行后编译通过（实验验证）。</p>
+<p><b>根因：</b>MSVC 内联汇编 <code>{ }</code> 块中语句需换行分隔，单行分号写法会把闭合 <code>}</code> 吞入汇编块。</p>
+<p><b>修复建议：</b>改为多行文本：</p>
+<pre>_FLAW_ASM = "__asm {\nnop; nop;\njmp defact_flage;\ndefact_flage: nop;\n}"
+_VARIABLE_ASM = "__asm {\nnop; nop;\njmp variable_flage;\nvariable_flage: nop;\n}"</pre>
+
+<h4>B8 · 模板替换跳过条件过宽（严重）</h4>
+<p><b>复现：</b>扩样文件第 76 行 <code>inputBuffer[recvResult] = '\0';</code> 未替换（含 <code>\</code> 被跳过）；<code>#define CHAR_ARRAY_SIZE (3 * sizeof(data) + 2)</code> 未替换（含 <code>#</code>）。声明被改名后引用仍为原名 → C2065。</p>
+<p><b>根因：</b>template.py 用 <code>"\\" in codeline</code> / <code>"#" in codeline</code> / <code>"return" in codeline</code> 判断「跳过行」，把字符串转义、宏定义、注释内容也误判。</p>
+<p><b>修复建议：</b></p>
+<pre># 仅当行尾是续行符（内联汇编续行）才跳过
+if codeline.rstrip().endswith("\\"):
+    continue
+# 仅当行首是预处理指令才跳过（但宏体内变量仍应替换）
+if codeline.lstrip().startswith("#"):
+    # 对 #define 宏体执行变量替换，保留指令关键字
+    ...
+# 移除 "return" 判断（return 行同样需要变量替换）</pre>
+
+<h4>B10 · LLM 客户端静态方法签名错误（严重）</h4>
+<pre>@staticmethod
+def _build_client(self, api_key: str):   # 多了一个 self 形参
+    ...
+self._client = self._build_client(api_key)  # 调用时报参数缺失</pre>
+<p><b>修复建议：</b>删除 self 形参，或去掉 @staticmethod 改为实例方法。</p>
+
+<h4>B11 · 无良性样本导致 100% 误报（高，设计层面）</h4>
+<p><b>复现：</b>对良性 hello_test.exe（246 切片）与良性对照指令串均预测为 CWE416_Use_After_Free。</p>
+<p><b>根因：</b>训练数据仅含缺陷切片（<code>code ! S CWE_X ! CWE_X E</code>），解码器无条件输出 CWE 标签；预测端 <code>_CWE_PREFIX in vul_type</code> 使任何输出都触发命中。</p>
+<p><b>修复建议：</b></p>
+<ul style="margin:8px 0 8px 24px;">
+  <li>训练集加入良性切片负样本（利用 <code>-rsd / record_secure_disassembly</code> 收集的安全切片），为词表增加 <code>NO_VULN</code>/<code>BENIGN</code> 类；</li>
+  <li>或改为分类头（CLS token + softmax 二分类/多分类），弃用 seq2seq 生成式方案；</li>
+  <li>评估需引入 precision/recall/F1 与真实误报率指标，而非仅训练 acc。</li>
+</ul>
+</div>
+
+<!-- ======================= 5. 性能与质量观察 ======================= -->
+<h2 id="sec5">5. 性能与工程质量观察</h2>
+<div class="card">
+<table>
+  <tr><th>编号</th><th>位置</th><th>观察</th><th>量化数据</th></tr>
+  <tr><td>P1</td><td>compiler.py</td><td>每个源文件单独 <code>call vcvarsall</code> + subst，进程开销大</td><td>约 2s/文件；单 CWE 9,681 文件 ≈ 5.4 小时；77 CWE 全量不可行</td></tr>
+  <tr><td>P2</td><td>trainer.py</td><td>CPU 训练慢；默认 6 epochs × 15 batch × 10 万切片</td><td>实测 1,275 样本/5 epochs = 1,002s；全量在 CPU 上需数天</td></tr>
+  <tr><td>P3</td><td>augment.py</td><td>逐文件写盘、单线程、无去重校验</td><td>9,681 文件 ≈ 24s（单 CWE）</td></tr>
+  <tr><td>P4</td><td>tokenizer.py</td><td>word2index 每词调用 _first_unknown_index 全表扫描 O(vocab)</td><td>10 万切片 × 每切片数百词 × O(1000) 扫描</td></tr>
+  <tr><td>P5</td><td>predictor.py</td><td>greedy_decoder 生成后再整段重跑 forward；每切片新建张量</td><td>检测 246 切片时模型反复前向</td></tr>
+  <tr><td>P6</td><td>dataset.py</td><td>generate_model_data/split_dataset 全量读入内存</td><td>67MB 数据集内存峰值高</td></tr>
+  <tr><td>Q1</td><td>全项目</td><td>日志中英文混杂、异常兜底只打日志不报错</td><td>—</td></tr>
+  <tr><td>Q2</td><td>dateset_overview.py</td><td>文件名 typo（dateset→dataset），统计口径以「文件名 _id_ 段」推断成因种类</td><td>对压缩过的样本名不准确</td></tr>
+  <tr><td>Q3</td><td>config.yaml</td><td>无配置 schema 校验，非法值在运行时才暴露</td><td>—</td></tr>
+</table>
+</div>
+
+<!-- ======================= 6. 优化建议 ======================= -->
+<h2 id="sec6">6. 优化建议（优先级路线图）</h2>
+
+<div class="card">
+<h3>6.1 P0 — 立即修复（阻断性，按依赖顺序）</h3>
+<ol style="margin:8px 0 8px 24px;">
+  <li><b>B3</b> 反汇编器整数常量（检测+数据集切片的第一步，先行修复）；</li>
+  <li><b>B7</b> 多行内联汇编 + <b>B6</b> /Fo 尾斜杠 + <b>B8</b> 模板跳过条件 → 数据集构建全链路打通；</li>
+  <li><b>B1</b> torch.load 兼容（或升级 torch）；<b>B2</b> 权重与架构对齐；</li>
+  <li><b>B10</b> LLM 客户端签名；<b>B9</b> scripts 兼容性（补 <code>from __future__ import annotations</code>）；<b>B4</b> detector 构造纳入 try/except。</li>
+</ol>
+
+<h3>6.2 P1 — 正确性提升</h3>
+<ul style="margin:8px 0 8px 24px;">
+  <li><b>B11</b> 引入良性负样本 / 分类头，重建评估指标（precision/recall/F1）；</li>
+  <li>切片抽取增加掩码数合法性校验与重试（当前 `len(mask_list) != 2` 直接丢弃且原因不明）；</li>
+  <li>对模板实例化后的代码做「编译前 smoke check」（语法级），提前过滤坏样本；</li>
+  <li>非 PE / 反汇编失败时向 stdout/stderr 输出明确提示而非静默空报告（B12）。</li>
+</ul>
+
+<h3>6.3 P2 — 性能优化</h3>
+<ul style="margin:8px 0 8px 24px;">
+  <li>编译：复用一次 vcvarsall 环境（如先导出环境变量再批量 cl），并行编译（ThreadPool），失败文件续传；</li>
+  <li>扩样/切片：多进程并行 + 去重；模板实例化使用哈希去重避免同模板重复样本；</li>
+  <li>分词：预计算 unknown 索引（构造时缓存）；预测时对切片批处理（batch inference）；</li>
+  <li>训练：支持多 worker DataLoader、梯度累积、混合精度；GPU 优先并在 README 明示算力门槛。</li>
+</ul>
+
+<h3>6.4 P3 — 工程化与可维护性</h3>
+<ul style="margin:8px 0 8px 24px;">
+  <li>测试：新增 conftest.py（自动注入 src 路径）或 pyproject 配 <code>pythonpath=["src"]</code>（B5）；补充数据构建/训练的集成测试（当前测试仅覆盖纯逻辑）；增加 GitHub Actions CI（Windows runner）；</li>
+  <li>配置：引入 YAML schema 校验（如 pydantic/cerberus），启动时校验路径与版本（torch/capstone 版本检查）；</li>
+  <li>错误处理：全局异常出口统一化，所有 BvscError 子类映射语义化退出码（README 已定义 0/1/2 但 B4 破坏）；</li>
+  <li>安全：LLM prompt 改为中性措辞（B15）；subst 用 try/finally 确保清理；API Key 仅环境变量注入（已符合）并补充校验；</li>
+  <li>文档：README 修正 Python 版本声明（3.10+）、补充已知缺陷与绕行方案、更新测试命令。</li>
+</ul>
+</div>
+
+<!-- ======================= 7. 测试结果总表 ======================= -->
+<h2 id="sec7">7. 功能验证结果总表</h2>
+<div class="card">
+<table>
+  <tr><th>功能（README 声称）</th><th>验证方式</th><th>结果</th></tr>
+  <tr><td>CLI 帮助 / 版本 / 参数校验 / 退出码</td><td>TC-03/04 黑盒</td><td class="sev M" style="background:#27ae60;color:#fff;">✅ 通过（16 项参数路径）</td></tr>
+  <tr><td>单元测试 pytest</td><td>TC-01/02</td><td class="sev M" style="background:#f39c12;color:#fff;">⚠️ 30/30 通过（需手工设 PYTHONPATH，README 命令不可用）</td></tr>
+  <tr><td>数据集构建 ①Juliet 精简</td><td>E2E 单 CWE</td><td class="sev M" style="background:#27ae60;color:#fff;">✅ 通过（3,227 文件）</td></tr>
+  <tr><td>数据集构建 ②内联汇编</td><td>E2E 单 CWE</td><td class="sev M" style="background:#27ae60;color:#fff;">✅ 通过（修复 B7 后）</td></tr>
+  <tr><td>数据集构建 ③模板生成</td><td>E2E 单 CWE</td><td class="sev M" style="background:#27ae60;color:#fff;">✅ 通过</td></tr>
+  <tr><td>数据集构建 ④样本扩样</td><td>E2E 单 CWE</td><td class="sev M" style="background:#27ae60;color:#fff;">✅ 通过（9,681 样本）</td></tr>
+  <tr><td>数据集构建 ⑤MSVC 编译</td><td>E2E 单 CWE</td><td class="sev M" style="background:#c0392b;color:#fff;">❌ 0% 成功（B6/B7/B8）</td></tr>
+  <tr><td>数据集构建 ⑥切片提取</td><td>E2E 单 CWE</td><td class="sev M" style="background:#c0392b;color:#fff;">❌ 阻塞（依赖⑤）</td></tr>
+  <tr><td>模型训练（单缺陷类型）</td><td>TC-06</td><td class="sev M" style="background:#27ae60;color:#fff;">✅ 数据/词表/训练/保存可用（收敛 99.28% acc）</td></tr>
+  <tr><td>预训练权重加载</td><td>TC-06</td><td class="sev M" style="background:#c0392b;color:#fff;">❌ 不匹配（B2）+ torch 兼容（B1）</td></tr>
+  <tr><td>PE 反汇编 / 切片</td><td>TC-07</td><td class="sev M" style="background:#c0392b;color:#fff;">❌ 开箱即崩（B3）</td></tr>
+  <tr><td>检测判别能力</td><td>TC-07</td><td class="sev M" style="background:#c0392b;color:#fff;">❌ 100% 误报（B11）</td></tr>
+  <tr><td>文本/JSON/silent/-o 报告</td><td>TC-07</td><td class="sev M" style="background:#27ae60;color:#fff;">✅ 通过</td></tr>
+  <tr><td>精确扫描 LLM 研判</td><td>3.6</td><td class="sev M" style="background:#c0392b;color:#fff;">❌ 不可用（B10）</td></tr>
+  <tr><td>dateset_overview.py</td><td>3.6</td><td class="sev M" style="background:#c0392b;color:#fff;">❌ 不可运行（B9）</td></tr>
+  <tr><td>build_dataset.py / train_model.py</td><td>3.6</td><td class="sev M" style="background:#c0392b;color:#fff;">❌ 不可运行（B9，Python 3.8 环境）</td></tr>
+</table>
+<div class="callout danger">
+<b>总体结论：</b>项目架构与论文方法映射清晰、代码组织良好、纯逻辑层单元测试完整；但<b>核心功能链路存在 6 个阻断性缺陷</b>：开箱状态下「检测」与「数据集构建」均不可用，「模型训练」可运行但产物无法被现有代码加载，「精确扫描」必然崩溃。修复 P0 清单后可打通机械链路，但<b>检测判别能力（B11）需在数据与模型设计层面重构</b>方能达到可用水平。
+</div>
+</div>
+
+<!-- ======================= 8. 附录 ======================= -->
+<h2 id="sec8">8. 附录</h2>
+<div class="card">
+<h3>8.1 关键复现命令</h3>
+<pre><span class="cmd"># 单元测试</span>
+PYTHONPATH=src python -m pytest tests/ -v                 <span class="ok">30 passed</span>
+
+<span class="cmd"># 数据集构建（单 CWE，修复注入版）</span>
+python test_pipeline_single_cwe.py                        <span class="dim">①-④ 通过，⑤ 0/9681 编译成功</span>
+
+<span class="cmd"># 编译根因隔离（MSVC x86）</span>
+cmd //c compile_variants.bat                              <span class="dim">D8036 → C2400/C1004 → C2065 三层缺陷</span>
+
+<span class="cmd"># 训练 + 预测 + 检测 E2E（单 CWE416，修复注入版）</span>
+python e2e_train_detect.py                                <span class="dim">训练收敛，检测 246/246 误报</span>
+
+<span class="cmd"># CLI 输出模式</span>
+python cli_output_test.py                                 <span class="dim">默认/silent/json/-o 全部可用</span></pre>
+
+<h3>8.2 测试产物位置</h3>
+<ul style="margin:8px 0 8px 24px;">
+  <li><code>data/temp_single_cwe_test/</code> — 单 CWE 构建中间产物（精简/内联/模板/扩样/编译日志）</li>
+  <li><code>data/temp_train_test/</code> — 训练产物（词表/权重/报告），含 <code>transformer_test.pth</code> 与 <code>hello_test_result.{txt,json}</code></li>
+  <li><code>data/temp_synth_exe/</code> — dateset_overview 合成测试目录</li>
+  <li><code>%TEMP%/compile_*.bat</code> — 编译复现脚本；<code>hello_test.exe</code> — 测试用真实 32 位 PE</li>
+</ul>
+
+<h3>8.3 论文对照说明</h3>
+<p>本项目对应论文《Binary vulnerability detection based on deep learning combined with inline assembly comparison》六步管线。测试发现：论文核心思想（内联汇编差异比较、模板扩展）在代码中均有明确落地（见 docs/article_notes.md 映射表），且阶段 ①-④ 实测可运行；但落地代码存在上述实现缺陷，且「无负样本训练」问题使论文所述检测准确度在本实现中无法达成，建议在复现实验时重点关注判别能力指标。</p>
+</div>
+
+<div class="footer">
+  BVSC 软件测试报告 · 2026-08-12 · 由软件测试工程师（AI 代理）生成<br>
+  测试环境：Windows 10 · Python 3.8.6 · torch 1.8.1+cpu · capstone 5.0.6 · MSVC 2019 (cl 19.29)
+</div>
+
+</div>
+</body>
+</html>

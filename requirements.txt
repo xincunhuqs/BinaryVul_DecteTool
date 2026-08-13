@@ -1,0 +1,12 @@
+# 运行依赖
+torch>=1.8          # 兼容 torch 1.8 ~ 2.x（predictor 已做 weights_only 降级）
+capstone>=4.0
+pefile>=2023.2.7
+click>=8.0
+openai>=1.0
+pyyaml>=6.0
+tqdm>=4.60
+numpy>=1.21
+
+# 开发/测试依赖
+pytest>=7.0

@@ -1,0 +1,91 @@
+# =====================================================================
+# BVSC 统一配置
+# 说明：
+#   - 所有路径若为相对路径，均相对于项目根目录（本文件所在目录的上级）
+#   - 敏感信息（如 API Key）一律通过环境变量注入，禁止写入配置文件
+# =====================================================================
+
+# ------------------------- 运行模式 -------------------------
+mode:
+  # 普通扫描：仅使用本地 Transformer 模型识别缺陷
+  normal_scan: true
+  # 精确扫描：在本地模型基础上调用大模型（DeepSeek）对结果降噪研判
+  accurate_scan: false
+  # 记录检测过程中判定为安全的反汇编切片（可用于后续再训练）
+  record_secure_disassembly: false
+
+# ------------------------- 检测管线 -------------------------
+detection:
+  # 反汇编架构（capstone）
+  arch: x86
+  mode: 32
+  # 切片块大小：每个切片包含的汇编指令条数；设为 0 时在 min/max 之间随机
+  slice_block_size: 100
+  slice_block_size_min: 80
+  slice_block_size_max: 130
+  # 是否保存反汇编/切片中间文件（调试用）
+  save_disassembly: false
+  # 输出目录
+  output_dir: output
+  # 文本检测报告文件名
+  result_filename: single_deteresult.txt
+  # 安全切片记录目录（record_secure_disassembly=true 时生效）
+  discovery_dir: DefectDiscoveryTrainDate
+
+# ------------------------- 深度学习模型 -------------------------
+model:
+  # 模型权重与词表路径（相对项目根目录）
+  checkpoint: models/transformer.pth
+  tokenizer_path: models/tokenize_dict.txt
+  # 计算设备：auto / cuda / cpu
+  device: auto
+  # Transformer 超参数（与论文一致）
+  d_model: 512
+  d_ff: 2048
+  d_k: 64
+  d_v: 64
+  n_layers: 6
+  n_heads: 8
+  # 序列最大长度（含 padding）
+  max_seq_len: 700
+  # pad token 在词表中的索引
+  pad_id: 0
+
+# ------------------------- 大模型降噪（DeepSeek） -------------------------
+llm:
+  enabled: false
+  provider: deepseek
+  base_url: https://api.deepseek.com
+  model: deepseek-chat
+  # 从该环境变量读取 API Key（如 DEEPSEEK_API_KEY=sk-xxx）
+  api_key_env: DEEPSEEK_API_KEY
+  timeout: 120
+
+# ------------------------- 模型训练 -------------------------
+training:
+  epochs: 6
+  batch_size: 15
+  learning_rate: 0.008
+  momentum: 0.75
+  # 训练集占比（其余为测试集）
+  train_ratio: 0.95
+  # 随机种子（保证可复现）
+  seed: 42
+
+# ------------------------- 数据集构建 -------------------------
+dataset:
+  # Juliet 测试套件缺陷用例根目录（指向 .../C/testcases，勿指向具体 CWE 目录；
+  # 仅构建单一缺陷类型请用 only_cwe 配置）
+  juliet_testcases_dir: data/2017-10-01-juliet-test-suite-for-c-cplusplus-v1-3/C/testcases
+  # 编译支持头文件目录（io.c / std_thread.c / std_testcase.h 等）
+  support_dir: conf/testcasesupport
+  # MSVC 环境初始化脚本（Windows 编译必需）
+  vcvarsall_path: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvarsall.bat"
+  # subst 虚拟盘符（Windows 编译使用，用于规避路径过长问题）
+  subst_drive: "K:"
+  # 每个缺陷模板扩展生成的样本数
+  expand_samples_per_template: 20
+  # 仅构建指定缺陷类型的数据集（如 CWE121_Stack_Based_Buffer_Overflow）；置空则构建全部
+  only_cwe: null
+  # 数据集构建中间产物目录
+  work_dir: data/temp

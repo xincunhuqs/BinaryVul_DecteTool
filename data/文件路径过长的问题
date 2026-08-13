@@ -1,0 +1,8 @@
+处理 Windows 路径长度限制
+可能已接近或超过限制。若超限：
+启用长路径支持（推荐）：
+Win + R 输入 regedit 打开注册表。
+导航到 计算机\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem。
+双击 LongPathsEnabled，将其值改为 1。
+重启系统。
+

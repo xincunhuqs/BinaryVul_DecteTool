@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# 虚拟环境
+.venv/
+venv/
+env/
+
+# 测试与覆盖率
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 输出与运行时产物
+output/
+DefectDiscoveryTrainDate/
+data/temp/
+data/train_work/
+*.log
+
+# 数据集（体积大，不入库）
+# - Juliet 官方原始数据源 707MB，超出 GitHub 单文件限制，勿提交
+# - 汇总切片 67MB，可通过 `python scripts/build_dataset.py` 自行构建
+# - 训练/构建中间产物
+/data/2017-10-01-juliet-test-suite-for-c-cplusplus-v1-3/
+/data/total_defect_slicing.txt
+
+# 模型权重（体积大，不入库；如确需入库请使用 Git LFS）
+models/*.pth
+
+# Juliet 套件残留大文件（编译命令实际仅用 io.c / std_thread.c）
+conf/testcasesupport/main.cpp
+conf/testcasesupport/main_linux.cpp
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# 系统
+.DS_Store
+Thumbs.db
