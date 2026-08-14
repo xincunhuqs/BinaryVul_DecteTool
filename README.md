@@ -66,7 +66,49 @@
 
 ---
 
-## 📦 安装
+## 📥 下载与安装
+
+### 1. 克隆项目
+
+```bash
+git clone https://github.com/xincunhuqs/BinaryVul_DecteTool.git
+cd BinaryVul_DecteTool
+```
+
+### 2. 下载大文件（不在 git 仓库中）
+
+> 由于体积超过 GitHub 单文件限制，以下大文件托管在 **GitHub Release** 附件中，
+> 克隆后需单独下载并放置到对应位置：
+
+| 文件 | 大小 | 用途 | 放置位置 |
+|---|---|---|---|
+| `transformer.pth` | 176 MB | 预训练模型权重（直接检测必需） | `models/transformer.pth` |
+| `total_defect_slicing.txt` | 64 MB | 缺陷汇编切片训练数据集 | `data/total_defect_slicing.txt` |
+
+下载地址：[**GitHub Releases → v1.0.0**](https://github.com/xincunhuqs/BinaryVul_DecteTool/releases/tag/v1.0.0)
+
+```bash
+# 示例：从 Release 下载后放置（或手动下载解压）
+# transformer.pth        -> models/transformer.pth
+# total_defect_slicing.txt -> data/total_defect_slicing.txt
+```
+
+### 3. 下载 Juliet 原始数据源（构建数据集必需，707MB，未随仓库分发）
+
+官方下载地址（NIST SAMATE SARD 测试套件 #112）：
+
+> **https://samate.nist.gov/SARD/test-suites/112**
+
+选择 **2017-10-01-juliet-test-suite-for-c-cplusplus-v1-3**（C/C++ 版）下载并解压，
+使目录结构为：
+
+```
+data/2017-10-01-juliet-test-suite-for-c-cplusplus-v1-3/C/testcases/CWE121_...
+```
+
+> 📌 详细说明见 [`data/README.md`](data/README.md)（为什么不上传 / 如何放置 / 如何验证）。
+
+### 4. 安装依赖
 
 ```bash
 # 环境要求：Python >= 3.8（Windows / Linux）
