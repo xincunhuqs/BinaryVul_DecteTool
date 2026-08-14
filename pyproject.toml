@@ -24,20 +24,11 @@ dependencies = [
     "numpy>=1.21",
 ]
 
-[project.optional-dependencies]
-dev = ["pytest>=7.0"]
-
 [project.scripts]
 bvsc = "bvsc.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-# 修复(B5): 自动将 src 加入 sys.path，使 README 中的 `pytest tests/ -v` 可直接运行
-pythonpath = ["src"]
 
 [tool.coverage.run]
 source = ["src/bvsc"]

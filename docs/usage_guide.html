@@ -272,10 +272,9 @@ dataset:
 </div>
 
 <!-- ================= 7 自动化测试 ================= -->
-<h2 id="s7">7. 自动化测试</h2>
+<h2 id="s7">7. 自动化测试（已移除）</h2>
 <div class="card">
-<pre><span class="k">pytest tests/ -v</span>   <span class="c"># 37 个用例（已配置自动加载 src，无需 PYTHONPATH）</span></pre>
-  <p>覆盖：配置加载、检测编排、Juliet 预处理、切片、模板、分词器，以及修复回归用例（内联汇编多行、#ifndef 处理、掩码状态机等）。</p>
+  <p>仓库已移除 <code>tests/</code> 单元测试目录。开发期间的测试过程与结果见 <a href="test_report.html">test_report.html</a>（37/37 用例通过）。</p>
 </div>
 
 <!-- ================= 8 FAQ ================= -->
@@ -311,7 +310,6 @@ dataset:
 │   └── dataset/             <span class="c"># juliet / inline_assembly / template / augment</span>
 │                            <span class="c"># compiler / slicing_code / pipeline（六步管线）</span>
 ├── scripts/                 <span class="c"># build_dataset.py / train_model.py / dateset_overview.py</span>
-├── tests/                   <span class="c"># 37 个单元测试</span>
 ├── docs/                    <span class="c"># 文档（论文映射 / 测试报告 / 优化报告 / 本手册）</span>
 ├── data/                    <span class="c"># Juliet 官方数据源（只读）+ total_defect_slicing.txt</span>
 └── conf/                    <span class="c"># MSVC 编译支持文件</span></pre>

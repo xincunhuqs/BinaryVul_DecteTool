@@ -18,7 +18,7 @@
 
 > **BVSC**（Binary Vulnerability detection System Combined）是论文 *Binary vulnerability detection based on deep learning combined with inline assembly comparison* 的完整实现：以 **Juliet 缺陷数据集** 为原始数据源，通过 **内联汇编差异比较** 与 **缺陷模板扩展** 两项技术提取缺陷汇编切片，使用 **Transformer** 深度学习模型训练识别，最终实现 PE 二进制文件的漏洞检测与 **代码级缺陷定位**。
 
-**快速导航**：[论文方法](#-论文方法) · [特性](#-特性) · [安装](#-安装) · [使用](#-使用) · [配置](#-配置) · [构造自己的缺陷数据集](#-构造自己的缺陷数据集) · [目录结构](#-目录结构) · [测试](#-测试) · [文档](#-文档) · [已知限制](#-已知限制)
+**快速导航**：[论文方法](#-论文方法) · [特性](#-特性) · [安装](#-安装) · [使用](#-使用) · [配置](#-配置) · [构造自己的缺陷数据集](#-构造自己的缺陷数据集) · [目录结构](#-目录结构) · [文档](#-文档) · [已知限制](#-已知限制)
 
 ---
 
@@ -75,23 +75,32 @@ git clone https://github.com/xincunhuqs/BinaryVul_DecteTool.git
 cd BinaryVul_DecteTool
 ```
 
-### 2. 下载大文件（不在 git 仓库中）
+### 2. 下载模型权重等大文件（⚠️ 必需步骤，勿跳过）
 
-> 由于体积超过 GitHub 单文件限制，以下大文件托管在 **GitHub Release** 附件中，
-> 克隆后需单独下载并放置到对应位置：
+> **⚠️ 重要：模型权重 `transformer.pth` 不在 git 仓库中（体积超出 GitHub 单文件限制），必须从 [**GitHub Releases**](https://github.com/xincunhuqs/BinaryVul_DecteTool/releases/tag/v1.0.0) 单独下载。它是运行检测的【必需文件】——不下载的话 `BVSC.py` 将无法加载模型、直接检测失败！**
+
+**✅ 推荐：一键下载打包（权重 + 切片数据 + 使用说明）**
+
+[**⬇️ bvsc_v1.0.0.zip（约 167MB）**](https://github.com/xincunhuqs/BinaryVul_DecteTool/releases/download/v1.0.0/bvsc_v1.0.0.zip)
+
+解压后按包内 `使用说明.txt` 放置到对应目录即可。
+
+**或按需单独下载：**
 
 | 文件 | 大小 | 用途 | 放置位置 |
 |---|---|---|---|
-| `transformer.pth` | 176 MB | 预训练模型权重（直接检测必需） | `models/transformer.pth` |
-| `total_defect_slicing.txt` | 64 MB | 缺陷汇编切片训练数据集 | `data/total_defect_slicing.txt` |
+| `transformer.pth` | 176 MB | 预训练模型权重（**检测必需**） | `models/transformer.pth` |
+| `total_defect_slicing.txt` | 64 MB | 缺陷汇编切片训练数据集（重新训练用） | `data/total_defect_slicing.txt` |
 
 下载地址：[**GitHub Releases → v1.0.0**](https://github.com/xincunhuqs/BinaryVul_DecteTool/releases/tag/v1.0.0)
 
 ```bash
-# 示例：从 Release 下载后放置（或手动下载解压）
-# transformer.pth        -> models/transformer.pth
+# 示例：从 Release 下载后放置（或下载 zip 解压后按使用说明放置）
+# transformer.pth          -> models/transformer.pth
 # total_defect_slicing.txt -> data/total_defect_slicing.txt
 ```
+
+> 🔍 快速验证：`ls -la models/transformer.pth` 应显示约 176MB，缺失则重新下载。
 
 ### 3. 下载 Juliet 原始数据源（构建数据集必需，707MB，未随仓库分发）
 
@@ -128,6 +137,8 @@ pip install -e .
 ## 🚀 使用
 
 ### 快速开始
+
+> ⚠️ 首次运行前请先完成上方「第 2 步」：从 [**Releases**](https://github.com/xincunhuqs/BinaryVul_DecteTool/releases/tag/v1.0.0) 下载模型权重到 `models/transformer.pth`，否则模型无法加载、检测会直接失败。
 
 ```bash
 # 查看帮助（-h / --help 均可，含 Banner 与分组说明）
@@ -287,6 +298,7 @@ python BVSC.py -efp target.exe -v             # DEBUG 级日志
 | 支持的文件格式 | x86/32 位 PE（架构在 `config.yaml` → `detection.arch/mode`） |
 | 精确扫描无效果 | 设置环境变量 `DEEPSEEK_API_KEY`（`export DEEPSEEK_API_KEY=sk-xxx`） |
 | 训练很慢 | CPU 上 10 万切片 × 6 epochs 需数天，建议 GPU 或先用 `only_cwe` 构建单类型小数据集验证 |
+| 报错「模型加载失败 / 找不到权重」 | 未下载权重：从 [Releases](https://github.com/xincunhuqs/BinaryVul_DecteTool/releases/tag/v1.0.0) 下载 `transformer.pth` 放到 `models/` 目录（必需步骤，见安装第 2 步） |
 
 完整参数与配置说明见上文「参数一览」「⚙️ 配置」，更多细节见 [`docs/usage_guide.html`](docs/usage_guide.html)。
 
@@ -358,7 +370,7 @@ python scripts/train_model.py -data data/total_defect_slicing.txt -benign Defect
 bvsc/
 ├── BVSC.py                  # CLI 入口（python BVSC.py -efp ...）
 ├── config/config.yaml       # 统一配置
-├── models/                  # 模型权重 transformer.pth + 词表 tokenize_dict.txt
+├── models/                  # 模型权重 transformer.pth（需从 Releases 下载）+ 词表 tokenize_dict.txt
 ├── src/bvsc/                # 源码包
 │   ├── cli.py               # subfinder 风格 CLI
 │   ├── detector.py          # 检测编排：反汇编→切片→预测→LLM 降噪→报告
@@ -377,13 +389,6 @@ bvsc/
 ```
 
 ---
-
-## ✅ 测试
-
-```bash
-pip install pytest
-pytest tests/ -v        # 已配置自动加载 src 路径，无需额外设置 PYTHONPATH
-```
 
 ---
 
